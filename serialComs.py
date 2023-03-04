@@ -6,7 +6,7 @@ import json
 # Name of our attached arduino
 arduino = '/dev/ttyACM0'
 
-# We want to keep the baud rate consistent on Arduino and RasPi
+  # We want to keep the baud rate consistent on Arduino and RasPi
 baud = 9600
 
 if __name__ == '__main__':
@@ -18,7 +18,7 @@ if __name__ == '__main__':
         line = ser.readline()
         try:
             line = line.decode('ascii').rstrip()
-            data = json.loads(line)
+            data = json.loads(line)     
             print(data)
         except Exception as err:
             print(err, line)
