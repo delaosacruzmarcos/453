@@ -7,7 +7,7 @@
 #--------------------------#
 
 # TODO replace the json string with imported serial communication 
-json = ""
+exampleJson = '{"name":"John", "age":30, "car":null}'
 
 class LaunchDrum():
     def __init__(self,json):

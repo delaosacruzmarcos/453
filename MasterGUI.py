@@ -4,6 +4,7 @@ import customtkinter
 import os
 from PIL import Image
 from LaunchDrum import *
+from internal.States import States
 
 customtkinter.set_appearance_mode("Dark")  # Modes: "System" (standard), "Dark", "Light"
 customtkinter.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
@@ -43,7 +44,7 @@ class App(customtkinter.CTk):
         self.logo_label.grid(row=0, column=0, padx=0, pady=(20, 0))
  
         # create radiobutton frame
-        self.state_var = tkinter.IntVar(value=0)
+        self.state_var = tkinter.IntVar(States.LOAD) #We start the in the loading state
         self.label_radio_group = customtkinter.CTkLabel(self.sidebar_frame, text="Current Stage of Launch:")
         self.label_radio_group.grid(row=1, column=0, columnspan=1, padx=10, pady=10, sticky="")
         self.load_state_button = customtkinter.CTkRadioButton(self.sidebar_frame, variable=self.state_var, value=0, text="Load")
@@ -123,7 +124,7 @@ class App(customtkinter.CTk):
 
 
     # updates the GUI when a state change occurs
-    def change_state(self, state):
+    def change_state(self, state: States):
         if (state >= 0 and state < 4):
             self.state_var = state
             if(self.state_var == 0): #Load
@@ -147,7 +148,7 @@ class App(customtkinter.CTk):
                 self.pressurize_state_button.configure(state="disabled")
                 self.launch_state_button.configure(state="enabled")
 
-
+    # Update launch drums on screen  
     def updateLaunchDrumInformation(self):
         rHeight = rDrum.getHeight()
         lHeight = lDrum.getHeight()
@@ -155,13 +156,9 @@ class App(customtkinter.CTk):
         lRotate = lDrum.getRotation()
         rActive = rDrum.getActivationStatus()
         lActive = lDrum.getActivationStatus()
-        self.Left_Rocket_textbox.insert("0.0","Activation status: "+str(lActive)+"\nHeight:"+str(lHeight)+"\nRotation"+str(lRotate))
-        self.Right_Rocket_textbox.insert("0.0","Activation status: "+str(rActive)+"\nHeight:"+str(rHeight)+"\nRotation"+str(rRotate))
+        self.Left_Rocket_textbox.insert("0.0","Activation status: "+str(lActive)+"\nHeight: "+str(lHeight)+"\nRotation: "+str(lRotate))
+        self.Right_Rocket_textbox.insert("0.0","Activation status: "+str(rActive)+"\nHeight: "+str(rHeight)+"\nRotation: "+str(rRotate))
 
-
-
-
-        
 
 if __name__ == "__main__":
     rDrum = LaunchDrum("hello")
