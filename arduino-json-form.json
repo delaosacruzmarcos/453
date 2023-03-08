@@ -1,0 +1,29 @@
+{
+  "COM": 999999999,
+  "joysticks": {
+    "left": {
+      "x": 1024,
+      "y": 1024
+    },
+    "right": {
+      "x": 1024,
+      "y": 1024
+    }
+  },
+  "actuators": {
+    "1": {
+      "pos": 1024,
+      "current_alarm": {
+        "left": 1024,
+        "right": 1024
+      }
+    },
+    "2": {
+      "pos": 1024,
+      "current_alarm": {
+        "left": 1024,
+        "right": 1024
+      }
+    }
+  }
+}
