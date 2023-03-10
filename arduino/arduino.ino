@@ -19,10 +19,10 @@ int actuator_2_alarm_right = -1;
 
 /* component control values */
 //int actuator_1_control_mode = SET_POSITION /* SET_POSITION | SET_MOTION*/
-int actuator_1_desired_pos = 512;          /* 0 - 1024 */
+int actuator_1_desired_pos = -1;          /* 0 - 1024 */
 
 //int actuator_2_control_mode = SET_POSITION /* SET_POSITION | SET_MOTION*/
-int actuator_2_desired_pos = 512;          /* 0 - 1024 */
+int actuator_2_desired_pos = -1;          /* 0 - 1024 */
 
 void sendResponse() {
   // Json incoding for the current string, use this url to determinefurute strings
@@ -80,8 +80,9 @@ void readSerial() {
     
     if(!error) {
       actuator_1_desired_pos = doc["actuators"]["1"]["move_to"];
+      actuator_2_desired_pos = doc["actuators"]["2"]["move_to"];
     } else {
-      //Serial.println(error.f_str());
+      Serial.println(error.f_str());
     }
   }
 }
@@ -146,6 +147,9 @@ int actuatorSpeed(int displacement) {
 }
 
 void actuators() {
+  if(actuator_1_desired_pos < 0 || actuator_1_desired_pos > 1024)
+    return;
+    
   int actuator_1_error = actuator_1_desired_pos - actuator_1_pos;
   int actuator_1_speed = actuatorSpeed(actuator_1_error);
   
@@ -180,5 +184,4 @@ void loop() {
   readHardware();
   sendResponse();
   actuators();
-  Serial.flush();
 }

@@ -2,6 +2,7 @@
 import serial
 import time
 import json
+import actuator
 
 controlFile = open("arduino-control.json", 'r')
 START_CONTROLS = json.load(controlFile)
@@ -32,6 +33,7 @@ if __name__ == '__main__':
     ser = serial.Serial(arduino, baud, timeout=5)
     ser.reset_input_buffer()
 
+    act1 = actuator.Actuator('1')    
     while True:
         while ser.readable():
             
@@ -49,11 +51,14 @@ if __name__ == '__main__':
                 print(actuator_readings["1"])
             except Exception as err:
                 print(err, line)
-            
-            # attempt to write controls to arduino
-            arduino_control[ACTUATOR_KEY] = actuator_control
-            controlData = json.dumps(arduino_control)
 
+        # attempt to write controls to arduino
+            if(act1.getPos() != None):
+                act1.moveTo(act1.getPos() - 50)
+            else:
+                print(actuator_readings, act1.actuator)
+
+            controlData = json.dumps(arduino_control)
             try:
                 ser.write(bytes(controlData, 'ascii'))
                 ser.flush()
