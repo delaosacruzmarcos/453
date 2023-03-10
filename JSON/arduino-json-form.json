@@ -3,11 +3,15 @@
   "joysticks": {
     "left": {
       "x": 1024,
-      "y": 1024
+      "y": 1024,
+      "risingEdge": false,
+      "fallingEdge": false
     },
     "right": {
       "x": 1024,
-      "y": 1024
+      "y": 1024,
+      "risingEdge": false,
+      "fallingEdge": false
     }
   },
   "actuators": {
@@ -24,6 +28,20 @@
         "left": 1024,
         "right": 1024
       }
+    }
+  },
+  "buttons": {
+    "center":{
+      "risingEdge": false,
+      "fallingEdge": false
+    }
+  },
+  "switches":{
+    "left":{
+      "on":false
+    },
+    "right":{
+      "on":false
     }
   }
 }
