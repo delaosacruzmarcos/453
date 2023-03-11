@@ -25,7 +25,7 @@ int actuator_1_desired_pos = -1;          /* 0 - 1024 */
 int actuator_2_desired_pos = -1;          /* 0 - 1024 */
 
 /* pressure sensor; system pressure -> analog read value between 0 - 1024 */
-int pressure_reading = 0 /* default for 1 atm is a reading of ~99*/
+int pressure_reading = 0; /* default for 1 atm is a reading of ~99*/
 
 void sendResponse() {
   // Json incoding for the current string, use this url to determinefurute strings
