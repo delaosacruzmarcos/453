@@ -5,12 +5,13 @@
 # set either via GPIO or other parts of the program
 ROCKET_A = True/False # connected to a switch that can be disabled at any time for safety
 ROCKET_B = True/False # ^^^
-LOADING = 0
-PRESSURIZATION = 0
-LAUNCH_STATE = 0
+LOAD = 0
+PRESSUREIZE = 0
+LAUNCH = 0
 LAUNCH_WAITING = 1 # changes when launch button pressed
 
 # GPIO INPUTS
+# NEEDS TO PULL VALUES FROM OTHER CODE
 PRESSURE  # Pressure sensor reading
 PRESSURE_TARGET
 LAUCH_GO # launch button
@@ -43,8 +44,8 @@ COMPRESSOR = 0 # compressor on (1) and off (0) control signal
 # The entire process is divided into 10 stages, per the original states
 # described in the presentation. Each stage is labelled in the code
 
-# LOADING STAGE
-while LOADING and not PRESSURIZATION and not LAUNCH_STATE:
+# LOAD STAGE
+while LOAD and not PRESSUREIZE and not LAUNCH:
     # Stages correspond to Stage numbering from Final Presentation
 
     # Stage 0: ensure that system is safe
@@ -74,12 +75,12 @@ while LOADING and not PRESSURIZATION and not LAUNCH_STATE:
         Abort() # should only hit this if there is an error
     Sleep(1)
 
-    # READY TO MOVE FROM LOADING TO PRESSURIZATION STATE
-    LOADING = 0
-    PRESSURIZATION = 1
+    # READY TO MOVE FROM LOAD TO PRESSUREIZE STATE
+    LOAD = 0
+    PRESSUREIZE = 1
 
-# PRESSURIZATION STAGE
-while PRESSURIZATION and not LAUNCH_STATE and not LOADING:
+# PRESSUREIZE STAGE
+while PRESSUREIZE and not LAUNCH and not LOAD:
     # Stage 4: Prepare system for pressurization
     SOLENOID_P = 1
     Sleep(1)
@@ -87,9 +88,9 @@ while PRESSURIZATION and not LAUNCH_STATE and not LOADING:
     # Stage 5 & 6: Pressurize System
     PREV_PRESSURE = PRESSURE
     COMPRESSOR = 1
-    while PRESSURIZATION and PRESSURE < PRESSURE_TARGET:
+    while PRESSUREIZE and PRESSURE < PRESSURE_TARGET:
         if PREV_PRESSURE > PRESSURE:
-            PRESSURIZATION = 0 # unset for safety?
+            PRESSUREIZE = 0 # unset for safety?
             HANDLE_LEAK() # paceholder; function could just open all solenoids or w/e
             Abort()
         Sleep(0.5) # sleep briefly to avoid consuming too much CPU
@@ -108,10 +109,10 @@ while PRESSURIZATION and not LAUNCH_STATE and not LOADING:
 
     # Stage 8: Vent system (except rocket to be launched)
     SOLENOID_P = 0
-    PRESSURIZATION = LOADING = 0
-    LAUNCH_STATE = 1
+    PRESSUREIZE = LOAD = 0
+    LAUNCH = 1
 
-while LAUNCH_STATE and not PRESSURIZATION and not LOADING: # extra carefule guard statement
+while LAUNCH and not PRESSUREIZE and not LOAD: # extra carefule guard statement
     countdown = 10
     while LAUNCH_WAITING:
         Sleep(0.1) # brief nap while waiting for someone to hit the launch button
@@ -142,9 +143,9 @@ while LAUNCH_STATE and not PRESSURIZATION and not LOADING: # extra carefule guar
     # Stage 10: Launch complete, reset everything to safe
     SOLENOID_A = SOLENOID_B = SOLENOID_P = 0
     LATCH_A = LATCH_B = 0
-    LAUNCH_STATE = PRESSURIZATION = LOADING = 0
+    LAUNCH = PRESSUREIZE = LOAD = 0
 
 # SAFETY STATE: code falls back to this loop if nothing is happening
 # so other parts of the code/ system can do other things
-while not LOADING and not PRESSURIZATION and not LAUNCH_STATE:
+while not LOAD and not PRESSUREIZE and not LAUNCH:
     Sleep(1) # just wait
