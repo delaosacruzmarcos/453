@@ -110,6 +110,8 @@ int Com(int comCNT){
 #define RIGHT_JOY_X_PIN A2
 #define RIGHT_JOY_Y_PIN A3
 
+#define PRESSURE_SENSOR A6
+
 #define ACTUATOR_1_POS_PIN A13
 #define ACTUATOR_1_L_ALARM_PIN A14
 #define ACTUATOR_1_R_ALARM_PIN A15
@@ -138,6 +140,8 @@ void readHardware() {
   actuator_2_alarm_left = analogRead(ACTUATOR_2_L_ALARM_PIN);
   actuator_2_alarm_right = analogRead(ACTUATOR_2_R_ALARM_PIN);
   */
+
+  pressure_reading = analogRead(PRESSURE_SENSOR);
 }
 
 int actuatorSpeed(int displacement) {
