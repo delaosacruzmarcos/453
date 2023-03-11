@@ -4,7 +4,7 @@ import time
 import json
 import actuator
 
-controlFile = open("arduino-control.json", 'r')
+controlFile = open("JSON/arduino-control.json", 'r')
 START_CONTROLS = json.load(controlFile)
 
 # received from arduino
@@ -52,7 +52,7 @@ if __name__ == '__main__':
                 joystick_readings = data[JOYSTICK_KEY]
                 actuator_readings = data[ACTUATOR_KEY]
                 pressure_readings = data[PRESSURE_KEY]
-                print(actuator_readings["1"], pressure_readings["pressure"])
+                print(actuator_readings, pressure_readings)
             except Exception as err:
                 print(err, line)
 
