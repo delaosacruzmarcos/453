@@ -14,6 +14,9 @@ joystick_readings = dict()
 ACTUATOR_KEY = "actuators"
 actuator_readings = dict()
 
+PRESSURE_KEY = "pressure"
+pressure_readings = dict()
+
 com = -1
 
 # to be sent to arduino
@@ -48,7 +51,8 @@ if __name__ == '__main__':
                 com = data["COM"]
                 joystick_readings = data[JOYSTICK_KEY]
                 actuator_readings = data[ACTUATOR_KEY]
-                print(actuator_readings["1"])
+                pressure_readings = data[PRESSURE_KEY]
+                print(actuator_readings["1"], pressure_readings["pressure"])
             except Exception as err:
                 print(err, line)
 
