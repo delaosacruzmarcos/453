@@ -1,10 +1,11 @@
 # --------------- #
 # Team Rocket 2023
-# Author Marcos De La Osa Cruz
+# Authors Marcos De La Osa Cruz, Hannah Wilcox
 # Code to interact with the LED Switches for the activation of the launch drums
 
 import pinout as pins
 import tkinter as tk 
+import JSON
 import RPi.GPIO as GPIO
 from time import sleep
 
@@ -34,7 +35,8 @@ class Switch(pins.Pinout):
     # Used for GUI updates: True if left is active
     def gatherStateLeft():
         # Gather information about the current situation of the switches
-        curLState = GPIO.input(Switch.activateL)
+        jsonData = JSON.loads("arduino-json-form.json")
+        curLState = jsonData["switches"]["left"]["on"]
 
         #Update the state of the switches only if nessisary
         if (curLState != leftDrumActive_state):
@@ -45,9 +47,10 @@ class Switch(pins.Pinout):
     # Used for GUI updates: True if right is active
     def gatherStateRight():
         # Gather information about the current situation of the switches
-        curRState = GPIO.input(Switch.activateR)
+        jsonData = JSON.loads("arduino-json-form.json")
+        curRState = jsonData["switches"]["right"]["on"]
 
-        #Update the state of the switches only if nessisary
+        #Update the state of the switches only if necessary
         if (curRState != rightDrumActive_state):
             print("Updating right drum to", curRState)
             rightDrumActive_state = curRState

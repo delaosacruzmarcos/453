@@ -7,3 +7,4 @@ class Pinout(Enum):
 #!!!!!! Not sure of the exact pinout for the switches yet !!!!!!#
     activateL = 1   # Left activation switch (green LED enabled switch for left launch drum)   
     activateR = 2   # Right activation switch (green LED enabled switch for right launch drum)   
+    button = 3      # Button on controller
