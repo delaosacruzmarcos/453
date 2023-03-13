@@ -24,6 +24,9 @@ int actuator_1_desired_pos = -1;          /* 0 - 1024 */
 //int actuator_2_control_mode = SET_POSITION /* SET_POSITION | SET_MOTION*/
 int actuator_2_desired_pos = -1;          /* 0 - 1024 */
 
+/* pressure sensor; system pressure -> analog read value between 0 - 1024 */
+int pressure_reading = 0; /* default for 1 atm is a reading of ~99*/
+
 void sendResponse() {
   // Json incoding for the current string, use this url to determinefurute strings
   // https://arduinojson.org/v6/assistant/
@@ -66,6 +69,10 @@ void sendResponse() {
   actuators_2_current_alarm["right"] = actuator_2_alarm_right;
   */
 
+  /*--System Pressure Reading--------------------------------------------*/
+  JsonObject pressure = doc.createNestedObject("pressure");
+  pressure["pressure"] = pressure_reading;
+
   /*--Write-serial-to-RPi------------------------------------------------*/
   
   size_t bytesWritten = serializeJson(doc, Serial);
@@ -103,6 +110,8 @@ int Com(int comCNT){
 #define RIGHT_JOY_X_PIN A2
 #define RIGHT_JOY_Y_PIN A3
 
+#define PRESSURE_SENSOR A6
+
 #define ACTUATOR_1_POS_PIN A13
 #define ACTUATOR_1_L_ALARM_PIN A14
 #define ACTUATOR_1_R_ALARM_PIN A15
@@ -131,6 +140,8 @@ void readHardware() {
   actuator_2_alarm_left = analogRead(ACTUATOR_2_L_ALARM_PIN);
   actuator_2_alarm_right = analogRead(ACTUATOR_2_R_ALARM_PIN);
   */
+
+  pressure_reading = analogRead(PRESSURE_SENSOR);
 }
 
 int actuatorSpeed(int displacement) {
