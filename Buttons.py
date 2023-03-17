@@ -25,7 +25,7 @@ class Button(pins.Pinout):
         GPIO.setup(button, GPIO.IN)
 
         # The actual pinout is defined in pinout.py
-        button = pins.Pinout.activateL
+        button = pins.Pinout.button
 
         # Status of the button initialized to false
         rising_edge = False
