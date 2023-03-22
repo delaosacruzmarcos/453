@@ -12,8 +12,6 @@ from time import sleep
 
 # Tucking all the behavior in a class
 class Switch(pins.Pinout):
-
-
     # I wanted to override the init method to also set up the pinout for the switches
     def __init__(self) -> None:
         super().__init__()
@@ -29,8 +27,8 @@ class Switch(pins.Pinout):
         activateL = pins.Pinout.activateL
         activateR = pins.Pinout.activateR
         # States of the switches initialized to false
-        leftDrumActive_state = False
-        rightDrumActive_state = False
+        self.leftDrumActive_state = False
+        self.rightDrumActive_state = False
 
     # Used for GUI updates: True if left is active
     def gatherStateLeft():

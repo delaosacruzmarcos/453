@@ -1,8 +1,7 @@
 # --------------- #
 # Team Rocket 2023
 # Author Hannah Wilcox
-# Code to interact with the button for locking & pressurizing the system
-
+# Code to interact with the button for locking & pressurizing the syste
 import pinout as pins
 import tkinter as tk 
 import JSON

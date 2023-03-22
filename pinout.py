@@ -1,6 +1,10 @@
+# --------------- #
+# Team Rocket 2023
+# Author unknown, Marcos De La Osa Cruz
+# class contains the pinouts for the raspberry pi pins
+
 from enum import Enum
 
-# class contains the pinouts we will be using in our project
 class Pinout(Enum):
     testing = 1     # Pin left alone for testing purposes
 

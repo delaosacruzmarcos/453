@@ -1,10 +1,21 @@
+# --------------- #
+# Team Rocket 2023
+# Author Marcos De La Osa Cruz
+# User displayed GUI, walks the user through the launching 
+# Displays launch information to the user (rocket angle and rotation)
+# Count down to launch 
+
+#-----Imports----#
 import tkinter
 import tkinter.messagebox
 import customtkinter
 import os
 from PIL import Image
 from LaunchDrum import *
-from internal.States import States
+import UserText
+from States import *
+
+
 
 customtkinter.set_appearance_mode("Dark")  # Modes: "System" (standard), "Dark", "Light"
 customtkinter.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
@@ -12,12 +23,13 @@ customtkinter.set_default_color_theme("blue")  # Themes: "blue" (standard), "gre
 
 
 class App(customtkinter.CTk):
-    def __init__(self, rightLaunchDrum, leftLaunchDrum):
+    def __init__(self, rightLaunchDrum, leftLaunchDrum, stateHandler):
         super().__init__()
 
         #Launch Drum controllers
         self.rDrum = rightLaunchDrum
         self.lDrum = leftLaunchDrum
+        self.user_state = stateHandler
 
         # configure window
         self.title("University at Buffalo Rocket Launcher Software")
@@ -44,7 +56,7 @@ class App(customtkinter.CTk):
         self.logo_label.grid(row=0, column=0, padx=0, pady=(20, 0))
  
         # create radiobutton frame
-        self.state_var = tkinter.IntVar(States.LOAD) #We start the in the loading state
+        self.state_var = tkinter.IntVar(value=10) #We start the in the loading state
         self.label_radio_group = customtkinter.CTkLabel(self.sidebar_frame, text="Current Stage of Launch:")
         self.label_radio_group.grid(row=1, column=0, columnspan=1, padx=10, pady=10, sticky="")
         self.load_state_button = customtkinter.CTkRadioButton(self.sidebar_frame, variable=self.state_var, value=0, text="Load")
@@ -118,35 +130,13 @@ class App(customtkinter.CTk):
         self.Right_Rocket_textbox = customtkinter.CTkTextbox(master=self.Right_Rocket_frame, width=200, height=150)
         self.Right_Rocket_textbox.grid(row=1, column=0, padx=(20, 20), pady=(10, 10), sticky="nsew")
 
-        # set stage text values
-        self.Load_textbox.insert("0.0", "CTkTextbox\n\n" + "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.\n\n" * 20)
 
 
+    # updates the GUI when a state change occurs using States.py
+    def change_state(self, state):
+        self.user_state.changeState(state)
 
-    # updates the GUI when a state change occurs
-    def change_state(self, state: States):
-        if (state >= 0 and state < 4):
-            self.state_var = state
-            if(self.state_var == 0): #Load
-                self.load_state_button.configure(state="enabled")
-                self.aim_state_button.configure(state="disabled")
-                self.pressurize_state_button.configure(state="disabled")
-                self.launch_state_button.configure(state="disabled")
-            elif(self.state_var == 1): #Aim
-                self.load_state_button.configure(state="disabled")
-                self.aim_state_button.configure(state="enabled")
-                self.pressurize_state_button.configure(state="disabled")
-                self.launch_state_button.configure(state="disabled")
-            elif(self.state_var == 2): #Pressurize
-                self.load_state_button.configure(state="disabled")
-                self.aim_state_button.configure(state="disabled")
-                self.pressurize_state_button.configure(state="enabled")
-                self.launch_state_button.configure(state="disabled")
-            elif(self.state_var == 3): #Launch
-                self.load_state_button.configure(state="disabled")
-                self.aim_state_button.configure(state="disabled")
-                self.pressurize_state_button.configure(state="disabled")
-                self.launch_state_button.configure(state="enabled")
+
 
     # Update launch drums on screen  
     def updateLaunchDrumInformation(self):
@@ -159,10 +149,19 @@ class App(customtkinter.CTk):
         self.Left_Rocket_textbox.insert("0.0","Activation status: "+str(lActive)+"\nHeight: "+str(lHeight)+"\nRotation: "+str(lRotate))
         self.Right_Rocket_textbox.insert("0.0","Activation status: "+str(rActive)+"\nHeight: "+str(rHeight)+"\nRotation: "+str(rRotate))
 
+    def updateUserText(self):
+        boxes = [self.Load_textbox, self.Launch_textbox, self.Aim_textbox, self.Pressurization_textbox]
+        for box in boxes:
+            text = UserText.getText(self.user_state.getState())
+            print(text)
+            box.insert("0.0",text)
+
 
 if __name__ == "__main__":
     rDrum = LaunchDrum("hello")
     lDrum = LaunchDrum("hello")
-    app = App(rDrum,lDrum)
+    stateHandler = StateHandler()
+    app = App(rDrum,lDrum, stateHandler)
     app.updateLaunchDrumInformation()
+    app.updateUserText()
     app.mainloop()
