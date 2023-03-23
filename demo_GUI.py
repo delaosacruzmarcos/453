@@ -10,11 +10,12 @@ import tkinter
 import tkinter.messagebox
 import customtkinter
 import os
-from PIL import Image
 from LaunchDrum import *
 import UserText
 from demo_pattern import *
 from pinout import *
+from Joysticks import *
+from Switches import *
 
 
 
@@ -33,7 +34,6 @@ class App(customtkinter.CTk):
     def leftSwitchToggle(self,event):
         # tie this to the state machine
         print("left switch")
-        self.user_state.presentState()
         self.user_state.leftSwitchToggle()
 
     
@@ -43,7 +43,7 @@ class App(customtkinter.CTk):
         print("right switch toggled")
         self.user_state.rightSwitchToggle()
 
-    def __init__(self, rightLaunchDrum, leftLaunchDrum, Launcher: Launcher, pinout):
+    def __init__(self, rightLaunchDrum, leftLaunchDrum, Launcher: Launcher, pinout: Pinout, switch: Switch):
         super().__init__()
 
         #Launch Drum controllersl
@@ -51,6 +51,7 @@ class App(customtkinter.CTk):
         self.lDrum = leftLaunchDrum
         self.user_state = Launcher
         self.pinout = pinout
+        self.switch = switch
 
         # configure window
         self.title("University at Buffalo Rocket Launcher Software")
@@ -68,12 +69,8 @@ class App(customtkinter.CTk):
         self.sidebar_frame.grid(row=0, column=0, rowspan=4, sticky="nsew")
         self.sidebar_frame.grid_rowconfigure(5, weight=1)
 
-        # load and display logo image
-        image_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "assets")
-        self.Rocket_logo = customtkinter.CTkImage(Image.open(os.path.join( image_path,"rocket_logo_c.png")),
-                                               size=(200,200))
         # Program title
-        self.logo_label = customtkinter.CTkLabel(self.sidebar_frame, text="Rocket Launcher", image = self.Rocket_logo, font=customtkinter.CTkFont(size=20, weight="bold"))
+        self.logo_label = customtkinter.CTkLabel(self.sidebar_frame, text="Rocket Launcher", font=customtkinter.CTkFont(size=20, weight="bold"))
         self.logo_label.grid(row=0, column=0, padx=0, pady=(20, 0))
  
         # create radiobutton frame
@@ -91,13 +88,14 @@ class App(customtkinter.CTk):
 
 
 
-        #----------Middle Frame----------#
-        # create main entry and button
-        self.entry = customtkinter.CTkEntry(self, placeholder_text="CTkEntry")
-        self.entry.grid(row=3, column=1, columnspan=2, padx=(20, 0), pady=(20, 20), sticky="nsew")
+        #----------Middle Frame----------#GPIOPINS0, 0), pady=(20, 20), sticky="nsew")
 
         self.main_button_1 = customtkinter.CTkButton(master=self, fg_color="transparent", border_width=2, text_color=("gray10", "#DCE4EE"))
         self.main_button_1.grid(row=3, column=3, padx=(20, 20), pady=(20, 20), sticky="nsew")
+
+
+
+
 
         # Stages 
         self.tabview = customtkinter.CTkTabview(self, width=250)
@@ -190,7 +188,8 @@ if __name__ == "__main__":
     lDrum = LaunchDrum("hello")
     launcher = Launcher(Load())
     pins = Pinout()
-    app = App(rDrum,lDrum, launcher, pins)
+    sw = Switch(pins)
+    app = App(rDrum,lDrum, launcher, pins, Switch)
     app.eventInit()
     app.updateLaunchDrumInformation()
     app.updateUserText()

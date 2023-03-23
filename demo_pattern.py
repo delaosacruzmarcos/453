@@ -127,12 +127,6 @@ class Launch(State):
     def proceed(self) -> None:
         print("Launcher already fired rocket")
 
-    # if up button is pushed nothing should happen
-    def pushUpBtn(self) -> None:
-        print("Already in the top floor")
-
-    def userText(self)->str:
-        pass
 
     def leftSwitchToggle(self)->None:
         print("launch toggle")

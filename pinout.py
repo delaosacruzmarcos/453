@@ -9,11 +9,26 @@ class Pinout():
     def __init__(self) -> None:
         # Event name : [key, function call]
         self.GPIOKEYS = {
-            '<<custom-test>>': ['<t>', testEvent],
-            '<<left-switch>>': ['<l>', leftSwitchToggle],
-            '<<right-switch>>': ['<r>', rightSwitchToggle],
+            '<<custom-test>>': ['<t>',"t", testEvent],
+            '<<left-switch>>': ['<l>',"l", leftSwitchToggle],
+            '<<right-switch>>': ['<r>',"r", rightSwitchToggle],
         }
 
-    # Returns the GPIO dictionary     
+        #Pins of the raspberry pi
+        self.GPIOPINS = {
+            "activeLIn":11, 
+            "activeRIn":13,
+            "activeLOut":15,
+            "activeROut":16,
+        }
+
+    # Returns the GPIO pin associated with name in dictionary if possible    
+    def getGPIOPINS(self, name: str):
+        if name in self.GPIOPINS:
+            return self.GPIOPINS.get(name)
+        else:
+            print("No pin with corresp ")
+
+    # Returns the GPIO Pin dictionary
     def getGPIOKeys(self):
         return self.GPIOKEYS

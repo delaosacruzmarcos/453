@@ -3,56 +3,62 @@
 # Authors Marcos De La Osa Cruz, Hannah Wilcox
 # Code to interact with the LED Switches for the activation of the launch drums
 
-import pinout as pins
+from pinout import *
 import tkinter as tk 
 import JSON
 import RPi.GPIO as GPIO
 from time import sleep
+from pyautogui import press
+
 
 
 # Tucking all the behavior in a class
-class Switch(pins.Pinout):
+class Switch():
     # I wanted to override the init method to also set up the pinout for the switches
-    def __init__(self) -> None:
+    def __init__(self,pins: Pinout) -> None:
         super().__init__()
 
-        # We will always be using the BCM mode
-        GPIO.setmode(GPIO.BCM)
-
-        # Settign them up to recieve input
-        GPIO.setup(activateL, GPIO.IN)
-        GPIO.setup(activateR, GPIO.IN)
-
+        self.pins = pins
         # The actual pinout is defined in pinout.py
-        activateL = pins.Pinout.activateL
-        activateR = pins.Pinout.activateR
-        # States of the switches initialized to false
-        self.leftDrumActive_state = False
-        self.rightDrumActive_state = False
+        activateLIn = self.pins.getGPIOPINS("activeLIn")
+        activateRIn = self.pins.getGPIOPINS("activeRIn")
+        activateLOut = self.pins.getGPIOPINS("activeLOut")
+        activateROut = self.pins.getGPIOPINS("activeROut")
 
-    # Used for GUI updates: True if left is active
-    def gatherStateLeft():
-        # Gather information about the current situation of the switches
-        jsonData = JSON.loads("arduino-json-form.json")
-        curLState = jsonData["switches"]["left"]["on"]
+        # We will always be using the BCM mode
+        GPIO.setmode(GPIO.BOARD)
 
-        #Update the state of the switches only if nessisary
-        if (curLState != leftDrumActive_state):
-            print("Updating left drum to", curLState)
-            leftDrumActive_state = curLState
-        return leftDrumActive_state
+        # Setting them up to recieve input
+        GPIO.setup(activateLIn, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+        GPIO.setup(activateRIn, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
         
-    # Used for GUI updates: True if right is active
-    def gatherStateRight():
-        # Gather information about the current situation of the switches
-        jsonData = JSON.loads("arduino-json-form.json")
-        curRState = jsonData["switches"]["right"]["on"]
+        # Setting them up to produce output
+        GPIO.setup(activateLOut, GPIO.OUT)
+        GPIO.setup(activateROut, GPIO.OUT)
 
-        #Update the state of the switches only if necessary
-        if (curRState != rightDrumActive_state):
-            print("Updating right drum to", curRState)
-            rightDrumActive_state = curRState
-        return rightDrumActive_state
+        GPIO.add_event_detect(activateLIn, GPIO.BOTH, 
+        callback=self.keystrokeSimL, bouncetime=1000)
+
+        GPIO.add_event_detect(activateRIn, GPIO.BOTH, 
+        callback=self.keystrokeSimR, bouncetime=1000)
 
 
+    # Throw the keypress interrupt 
+    def keystrokeSimL(self,activeLIn):
+        print("Left switch activated")
+        list = self.pins.getGPIOKeys().get('<<left-switch>>')
+        print(list)
+        self.keystroke(list[1])
+        return
 
+    # Throw the keypress interrupt 
+    def keystrokeSimR(self,activeRIn):
+        print("Right switch activated")
+        list = self.pins.getGPIOKeys().get('<<right-switch>>')
+        self.keystroke(list[1])
+        return
+
+    # Throw the keypress interrupt
+    def keystroke(self, key: str) -> None:
+        press(key)
+        return
