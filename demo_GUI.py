@@ -13,7 +13,7 @@ import os
 from PIL import Image
 from LaunchDrum import *
 import UserText
-from States import *
+from demo_pattern import *
 from pinout import *
 
 
@@ -21,28 +21,35 @@ from pinout import *
 customtkinter.set_appearance_mode("Dark")  # Modes: "System" (standard), "Dark", "Light"
 customtkinter.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
 
-#----------Event handling---------#
-def testEvent(event):
-    print('hello world')
 
-# Handles the left switch event 
-def leftSwitchToggle(event):
-    # tie this to the state machine
-    print("left switch toggled")
- 
-# Handles the right switch event
-def rightSwitchToggle(event):
-    # tie this to the state machine
-    print("right switch toggled")
 
 class App(customtkinter.CTk):
-    def __init__(self, rightLaunchDrum, leftLaunchDrum, stateHandler, pinout):
+        #----------Event handling---------#
+    def testEvent(self,event):
+        print('hello world')
+        self.user_state.presentState()
+
+    # Handles the left switch event 
+    def leftSwitchToggle(self,event):
+        # tie this to the state machine
+        print("left switch")
+        self.user_state.presentState()
+        self.user_state.leftSwitchToggle()
+
+    
+    # Handles the right switch event
+    def rightSwitchToggle(self,event):
+        # tie this to the state machine
+        print("right switch toggled")
+        self.user_state.rightSwitchToggle()
+
+    def __init__(self, rightLaunchDrum, leftLaunchDrum, Launcher: Launcher, pinout):
         super().__init__()
 
-        #Launch Drum controllers
+        #Launch Drum controllersl
         self.rDrum = rightLaunchDrum
         self.lDrum = leftLaunchDrum
-        self.user_state = stateHandler
+        self.user_state = Launcher
         self.pinout = pinout
 
         # configure window
@@ -155,10 +162,10 @@ class App(customtkinter.CTk):
 
     # Initialize all the function call backs
     def eventInit(self):
-        dic = self.pinout.getGPIOKeys()
-        for key in dic:
-            self.event_add(key,dic.get(key)[0])
-            self.bind(key, dic.get(key)[1])
+
+        self.event_add('<<left-switch>>','<l>')
+        self.bind('<<left-switch>>',self.leftSwitchToggle)
+
 
     # Update launch drums on screen  
     def updateLaunchDrumInformation(self):
@@ -174,16 +181,16 @@ class App(customtkinter.CTk):
     def updateUserText(self):
         boxes = [self.Load_textbox, self.Launch_textbox, self.Aim_textbox, self.Pressurization_textbox]
         for box in boxes:
-            text = UserText.getText(self.user_state.getState())
+            text = UserText.getText(self.user_state.userTextPhony())
             box.insert("0.0",text)
 
 
 if __name__ == "__main__":
     rDrum = LaunchDrum("hello")
     lDrum = LaunchDrum("hello")
-    stateHandler = StateHandler()
+    launcher = Launcher(Load())
     pins = Pinout()
-    app = App(rDrum,lDrum, stateHandler, pins)
+    app = App(rDrum,lDrum, launcher, pins)
     app.eventInit()
     app.updateLaunchDrumInformation()
     app.updateUserText()
