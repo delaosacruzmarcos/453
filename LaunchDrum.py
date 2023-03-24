@@ -2,32 +2,64 @@
 # CSE 453: Rocket Launcher Team
 # Author: Marcos
 # Date: 03/6/2023
-# Launch drum class provides simple way for the serial comunication to package 
-# data about the state of each launch drum to the MasterGUI
+# Launch drum class provides conversion of numbers 
+# recieved by the joystick, actuators, and motors to 
+# be presented to the GUI along with formatting json responses to the arduino
 #--------------------------#
 
-# TODO replace the json string with imported serial communication 
-exampleJson = '{"name":"John", "age":30, "car":null}'
+from Serial_Communication import *
 
 class LaunchDrum():
-    def __init__(self,json):
-        # TODO find a way to populate this object with relative information from the JSON
-        pass
 
-    # returns the angle of elevation of the launch drum
-    def getHeight(self):
+    # Globals
+    _serial = None
+
+    def __init__(self):
+        self._serial = Serial_Coms()
+
+    #Right drum Information to be displayed to the user
+    def getRightDrumInfo(self) -> str:
+        rotation = self.getRRotation()
+        launch = self.getRHeight()
+        press = self.getPressure()
+        return self.formatting(rotation,launch, press)
+
+
+    #left drum Information to be displayed to the user
+    def getLeftDrumInfo(self) -> str:
+        rotation = self.getLRotation()
+        launch = self.getLHeight()
+        press = self.getPressure()
+        return self.formatting(rotation,launch, press)
+
+    
+    def formatting(self,rotation, launch, press) -> str:
+        retStr = "Rotation: {}\n\n".format(rotation)
+        str1 = "Angle of launch: {}\n\n".format(launch)
+        str2 = "Pressurization level: {}%\n\n".format(press)
+        return retStr+str1+str2
+
+    
+    # returns the angle of elevation of the right launch drum
+    def getRHeight(self):
         return "30%"
     
-    # returns the rotation of the launch drum
-    def getRotation(self):
+    # returns the rotation of the right launch drum
+    def getRRotation(self) -> str:
         return "180"
     
-    # returns true when the corresponding green switch has been activated
-    def getActivationStatus(self):
-        return False
+    # returns the angle of elevation of the Left launch drum
+    def getLHeight(self):
+        return "30%"
     
-    # returns the pressurization status for the launch drum
-    def getPressurizationStatus(self):
-        return False
+    # returns the rotation of the left launch drum
+    def getLRotation(self) -> str:
+        return "180"
     
-    # Eventually we will use this Class to give highlevel commands 
+    # returns the current pressure in the system drum
+    def getPressure(self) -> str:
+        return "0"
+
+if __name__ == "__main__":
+    myLaunchDrum = LaunchDrum()
+    print(myLaunchDrum.getRightDrumInfo())

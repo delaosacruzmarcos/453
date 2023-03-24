@@ -37,6 +37,7 @@ class App(customtkinter.CTk):
         # tie this to the state machine
         print("left switch")
         self.user_state.leftSwitchToggle()
+        self.updateGUIHandler()
 
     
     # Handles the right switch event
@@ -44,13 +45,25 @@ class App(customtkinter.CTk):
         # tie this to the state machine
         print("right switch toggled")
         self.user_state.rightSwitchToggle()
+        self.updateGUIHandler()
 
-    def __init__(self, rightLaunchDrum, leftLaunchDrum, Launcher: Launcher, pinout: Pinout):
+    # Handles updating event
+    def updateGUI(self,event):
+        print("update occured")
+
+    # Handles updating the GUI
+    def updateGUIHandler(self) -> None:
+        self.updateLaunchDrumInformation()
+        self.updateUserText()
+        stage = self.user_state.getStage()
+        print(stage)
+        self.tabview.set(stage)
+
+    def __init__(self, Launcher: Launcher, pinout: Pinout):
         super().__init__()
 
-        #Launch Drum controllersl
-        self.rDrum = rightLaunchDrum
-        self.lDrum = leftLaunchDrum
+        #Launch Drum controllers
+        self.Drum = LaunchDrum()
         self.user_state = Launcher
         self.pinout = pinout
         #self.switch = switch
@@ -94,8 +107,6 @@ class App(customtkinter.CTk):
 
         self.main_button_1 = customtkinter.CTkButton(master=self, fg_color="transparent", border_width=2, text_color=("gray10", "#DCE4EE"))
         self.main_button_1.grid(row=3, column=3, padx=(20, 20), pady=(20, 20), sticky="nsew")
-
-
 
 
 
@@ -162,36 +173,40 @@ class App(customtkinter.CTk):
 
     # Initialize all the function call backs
     def eventInit(self):
-
+        #left switch
         self.event_add('<<left-switch>>','<l>')
         self.bind('<<left-switch>>',self.leftSwitchToggle)
+        #right switch
+        self.event_add('<<right-switch>>','<r>')
+        self.bind('<<right-switch>>',self.rightSwitchToggle)
+        #update GUI
+        self.event_add('<<update-GUI>>','<u>')
+        self.bind('<<update-GUI>>',self.updateGUI)
 
 
     # Update launch drums on screen  
     def updateLaunchDrumInformation(self):
-        rHeight = rDrum.getHeight()
-        lHeight = lDrum.getHeight()
-        rRotate = rDrum.getRotation()
-        lRotate = lDrum.getRotation()
-        rActive = rDrum.getActivationStatus()
-        lActive = lDrum.getActivationStatus()
-        self.Left_Rocket_textbox.insert("0.0","Activation status: "+str(lActive)+"\nHeight: "+str(lHeight)+"\nRotation: "+str(lRotate))
-        self.Right_Rocket_textbox.insert("0.0","Activation status: "+str(rActive)+"\nHeight: "+str(rHeight)+"\nRotation: "+str(rRotate))
+        print(self.user_state.leftDrumText())
+        self.Left_Rocket_textbox.delete("0.0","end")
+        self.Right_Rocket_textbox.delete("0.0","end")
+        ltext = self.user_state.leftDrumText()
+        rtext = self.user_state.rightDrumText()
+        self.Left_Rocket_textbox.insert("0.0",ltext)
+        self.Right_Rocket_textbox.insert("0.0",rtext)
 
     def updateUserText(self):
         boxes = [self.Load_textbox, self.Launch_textbox, self.Aim_textbox, self.Pressurization_textbox]
         for box in boxes:
-            text = UserText.getText(self.user_state.userTextPhony())
+            box.delete("0.0","end")
+            text = self.user_state.userText()
             box.insert("0.0",text)
 
 
 if __name__ == "__main__":
-    rDrum = LaunchDrum("hello")
-    lDrum = LaunchDrum("hello")
     launcher = Launcher(Load())
     pins = Pinout()
     #sw = Switch(pins)
-    app = App(rDrum,lDrum, launcher, pins)
+    app = App(launcher, pins)
     app.eventInit()
     app.updateLaunchDrumInformation()
     app.updateUserText()

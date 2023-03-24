@@ -2,13 +2,13 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from pyautogui import press
 from pinout import Pinout
+from LaunchDrum import *
 
 # The Launcher class is the context. It should be initiated with a default state.
 class Launcher:
     # Variables of interest
     _state = None
-    _joyInfo = None
-    _toggle = [False, False]
+    _drum: LaunchDrum = None
 
     def __init__(self, state: State) -> None:
         self.setLauncher(state)
@@ -20,6 +20,7 @@ class Launcher:
         self._state.Launcher = self
         self._pins = Pinout()
         self._state.Launcher._pins = self._pins
+        self._drum = LaunchDrum()
 
 
     def presentState(self):
@@ -32,12 +33,11 @@ class Launcher:
         press(char)
         return
 
+    def getStage(self)-> str:
+        return self._state.getStage()
+
     def pressurizeButton(self):
         self._state.pressurizeButton()
-
-    #TODO Remove after done testing
-    def userTextPhony(self)->int:
-       return 100
     
     def userText(self)->str:
         return self._state.userText()
@@ -54,6 +54,15 @@ class Launcher:
     def rightSwitchToggle(self)->None:
         self._state.rightSwitchToggle()
 
+    def rightDrumActive(self)->bool:
+        return self._state.rightDrumActive()
+    
+    def leftDrumActive(self)->bool:
+        return self._state.leftDrumActive()
+    
+    def processValue(self) -> int:
+        return self._state.processValue()
+
     # if both the buttons are pushed at a time, nothing should happen
     def pushUpAndDownBtns(self) -> None:
         print("Oops.. you should press one button at a time")
@@ -68,6 +77,11 @@ class State(ABC):
     @Launcher.setter
     def Launcher(self, Launcher: Launcher) -> None:
         self._Launcher = Launcher
+
+    #returns the name of the stage/state
+    @abstractmethod
+    def getStage(self)-> str:
+        pass
 
     #Computes the logic behind a registered press of the pressurization button
     @abstractmethod
@@ -99,7 +113,20 @@ class State(ABC):
     def rightSwitchToggle(self)->None:
         pass
 
+    #Returns value of the process at this point, used to determine slider and stages
+    @abstractmethod
+    def processValue(self)-> int:
+        pass
 
+    #Returns whether or not the left Drum is accepting input
+    @abstractmethod
+    def leftDrumActive(self)->bool:
+        pass
+
+    #Returns whether or not the right Drum is accepting input
+    @abstractmethod
+    def rightDrumActive(self)->bool:
+        pass
 
 
 class Load(State):
@@ -108,6 +135,9 @@ class Load(State):
     def update(self) -> None:
         print("Launcher is changing to next state...")
         self.Launcher.setLauncher(Pressurize())
+
+    def getStage(self)-> str:
+        return "Load Stage"
 
     # if up button is pushed nothing should happen
     def pressurizeButton(self) -> None:
@@ -120,10 +150,12 @@ class Load(State):
         return retStr+str1+str2
 
     def leftDrumText(self)->str:
-        pass
+        retStr = "In Active"
+        return retStr
 
     def rightDrumText(self)->str:
-        pass
+        retStr = "In Active"
+        return retStr
 
     def leftSwitchToggle(self)->None:
         print("Launcher is changing to next state...")
@@ -133,12 +165,22 @@ class Load(State):
         print("Launcher is changing to next state...")
         self.Launcher.setLauncher(AimRight())
 
+    # Neither launch Drum should move now
+    def rightDrumActive(self)->bool:
+        return False
+    
+    def leftDrumActive(self)->bool:
+        return False
+    
+    def processValue(self) -> int:
+        return 0
 """
 ---AimLeft---
 Left launch drum is active and taking move and elavate commands
 Right launch drum can be activated (transition to aim both state)
 """
 class AimLeft(State):
+
 
     def pressurizeButton(self) -> None:
         #Begin pressurization sequence
@@ -154,11 +196,14 @@ class AimLeft(State):
         str4 = "(optionally) when you are done positioning the launch pad press in the left joystick button to lock the position into place"
         return retStr+str1+str2+str3+str4
 
+    def getStage(self)-> str:
+        return "Aim Stage"
+
     def leftDrumText(self)->str:
-        pass
+        return self.Launcher._drum.getLeftDrumInfo()
 
     def rightDrumText(self)->str:
-        return " Right launch pad not active"
+        return "In Active"
 
     def leftSwitchToggle(self)->None:
         #Switch should be on, toggle means soft disable
@@ -169,6 +214,18 @@ class AimLeft(State):
         self.Launcher.setLauncher(AimBoth())
         self.Launcher.update()
         return
+    
+    # left launch Drum should move now
+    def rightDrumActive(self)->bool:
+        return False
+    
+    def leftDrumActive(self)->bool:
+        return True 
+    
+    def processValue(self) -> int:
+        return 0
+    
+
 """
 ---AimRight---
 Right launch drum is active and taking move and elavate commands
@@ -188,12 +245,15 @@ class AimRight(State):
         str3 = "If you have another rocket to launch place it on the left launch pad and activate the left green switch\n\n"
         str4 = "(optionally) when you are done positioning the launch pad press in the right joystick button to lock the position into place"
         return retStr+str1+str2+str3+str4
-    
+        
+    def getStage(self)-> str:
+        return "Aim Stage"
+
     def leftDrumText(self)->str:
-        return " Left launch pad not active"
+        return "In Active"
 
     def rightDrumText(self)->str:
-        pass
+       return self.Launcher._drum.getRightDrumInfo()
 
     def leftSwitchToggle(self)->None:
         #Engage the right launch drum
@@ -204,6 +264,16 @@ class AimRight(State):
     def rightSwitchToggle(self)->None:
         #Switch should be on, toggle means soft disable
         pass
+
+        # right launch Drum should move now
+    def rightDrumActive(self)->bool:
+        return True
+    
+    def leftDrumActive(self)->bool:
+        return False
+    
+    def processValue(self) -> int:
+        return 0
 """
 ---AimBoth---
 Left & Right launch drum is active and taking move and elavate commands
@@ -221,12 +291,15 @@ class AimBoth(State):
         str2 = "When you would like to pressurize the rockets for launch press the blue button at the bottom of the controller\n\n"
         str3 = "you will not be able to aim the rockets after they are pressurized for launch so choose your trajectory wisely!"
         return retStr+str1+str2+str3
-
+    
+    def getStage(self)-> str:
+        return "Aim Stage"
+    
     def leftDrumText(self)->str:
-        pass
-
+       return self.Launcher._drum.getLeftDrumInfo()
+        
     def rightDrumText(self)->str:
-        pass
+       return self.Launcher._drum.getRightDrumInfo() 
 
     def leftSwitchToggle(self)->None:
         #Switch should be on, toggle means soft disable
@@ -234,6 +307,16 @@ class AimBoth(State):
 
     def rightSwitchToggle(self)->None:
         pass
+
+    # Both launch Drums should move now
+    def rightDrumActive(self)->bool:
+        return True
+    
+    def leftDrumActive(self)->bool:
+        return True
+    
+    def processValue(self) -> int:
+        return 0
     
 """
 ---Pressurize---
@@ -248,7 +331,10 @@ class Pressurize(State):
     # if up button is pushed nothing should happen
     def pressurizeButton(self) -> None:
         print("Already in the top floor")
-
+    
+    def getStage(self)-> str:
+        return "Pressurization"
+    
     def userText(self)->str:
         pass
 
@@ -265,13 +351,18 @@ class Pressurize(State):
     def rightSwitchToggle(self)->None:
         pass
 
+    def processValue(self) -> int:
+        return 0
+
 class Launch(State):
 
       # if down button is pushed it should move one floor down and open the door
     def update(self) -> None:
         print("Launcher already fired rocket")
 
-
+    def getStage(self)-> str:
+        return "Launch Stage"
+    
     def leftSwitchToggle(self)->None:
         print("launch toggle")
 
@@ -289,6 +380,9 @@ class Launch(State):
 
     def rightSwitchToggle(self)->None:
         pass
+
+    def processValue(self) -> int:
+        return 0
 
 # if __name__ == "__main__":
 #     # The client code.
