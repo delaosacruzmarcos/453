@@ -9,9 +9,10 @@ class Pinout():
     def __init__(self) -> None:
         # Event name : [key, function call]
         self.GPIOKEYS = {
-            '<<custom-test>>': ['<t>',"t", testEvent],
-            '<<left-switch>>': ['<l>',"l", leftSwitchToggle],
-            '<<right-switch>>': ['<r>',"r", rightSwitchToggle],
+            '<<custom-test>>': ['<t>',"t"], #testing string print to console
+            '<<update-GUI>>': ['<u>',"u"],  #causes refresh of gui elements triggered by state change
+            '<<left-switch>>': ['<l>',"l"], #triggered by GPIO interrupt to update state
+            '<<right-switch>>': ['<r>',"r"],#triggered by GPIO interrupt to update state
         }
 
         #Pins of the raspberry pi
@@ -30,5 +31,5 @@ class Pinout():
             print("No pin with corresp ")
 
     # Returns the GPIO Pin dictionary
-    def getGPIOKeys(self):
+    def getGPIOKeys(self) -> dict[str, list[str]]:
         return self.GPIOKEYS

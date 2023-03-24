@@ -14,8 +14,10 @@ from LaunchDrum import *
 import UserText
 from demo_pattern import *
 from pinout import *
-from Joysticks import *
-from Switches import *
+
+#----Using RPi.GPIO---#
+# from Joysticks import *
+# from Switches import *
 
 
 
@@ -43,7 +45,7 @@ class App(customtkinter.CTk):
         print("right switch toggled")
         self.user_state.rightSwitchToggle()
 
-    def __init__(self, rightLaunchDrum, leftLaunchDrum, Launcher: Launcher, pinout: Pinout, switch: Switch):
+    def __init__(self, rightLaunchDrum, leftLaunchDrum, Launcher: Launcher, pinout: Pinout):
         super().__init__()
 
         #Launch Drum controllersl
@@ -51,7 +53,7 @@ class App(customtkinter.CTk):
         self.lDrum = leftLaunchDrum
         self.user_state = Launcher
         self.pinout = pinout
-        self.switch = switch
+        #self.switch = switch
 
         # configure window
         self.title("University at Buffalo Rocket Launcher Software")
@@ -188,8 +190,8 @@ if __name__ == "__main__":
     lDrum = LaunchDrum("hello")
     launcher = Launcher(Load())
     pins = Pinout()
-    sw = Switch(pins)
-    app = App(rDrum,lDrum, launcher, pins, Switch)
+    #sw = Switch(pins)
+    app = App(rDrum,lDrum, launcher, pins)
     app.eventInit()
     app.updateLaunchDrumInformation()
     app.updateUserText()

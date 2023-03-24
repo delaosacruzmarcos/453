@@ -8,12 +8,10 @@ if __name__ == "__main__":
     myLauncher.leftSwitchToggle()
 
     #transition launcher to pressurize
-    myLauncher.proceed()
     myLauncher.presentState()
-    myLauncher.leftSwitchToggle()
+    myLauncher.rightSwitchToggle()
 
 
     #transition launcher to Launch
-    myLauncher.proceed()
     myLauncher.presentState()
     myLauncher.leftSwitchToggle()
