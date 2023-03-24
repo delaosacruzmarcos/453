@@ -11,7 +11,6 @@ import tkinter.messagebox
 import customtkinter
 import os
 from LaunchDrum import *
-import UserText
 from demo_pattern import *
 from pinout import *
 

@@ -9,3 +9,5 @@ conatins class enum for each of the pins of the Raspberry GPIO. That way in the 
 
 ### MasterGui 
 responsible for the creation of the GUI displayed to the user on the controller. This GUI calls hardware modules like switches and buttons to update the itself. Please read the API for any hardware module before you change the way the commands interact with the GUI... We haven't wrote the API yet lol
+
+sorry this is terribly out of date, i'll write some documentation for everything once we get past the deadline -Marcos

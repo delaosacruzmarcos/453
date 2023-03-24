@@ -3,7 +3,6 @@
 # Author unknown, Marcos De La Osa Cruz
 # class contains the pinouts for the raspberry pi pins
 
-from MasterGUI import *
 
 class Pinout():
     def __init__(self) -> None:
@@ -22,6 +21,7 @@ class Pinout():
             "activeLOut":15,
             "activeROut":16,
         }
+
 
     # Returns the GPIO pin associated with name in dictionary if possible    
     def getGPIOPINS(self, name: str):
