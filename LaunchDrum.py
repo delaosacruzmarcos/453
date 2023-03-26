@@ -4,7 +4,7 @@
 # Date: 03/6/2023
 # Launch drum class provides conversion of numbers 
 # recieved by the joystick, actuators, and motors to 
-# be presented to the GUI along with formatting json responses to the arduino
+# be presented to the GUI along with handline pressurization 
 #--------------------------#
 
 from Serial_Communication import *
@@ -13,6 +13,11 @@ class LaunchDrum():
 
     # Globals
     _serial = None
+    _pressurization_stage:int = 0
+    _internal_pressure: int = 0
+    # we may want to change these from the gui?
+    _time_at_pressure: int = 0
+    _desired_pressure: int = 0
 
     def __init__(self):
         self._serial = Serial_Coms()
@@ -59,6 +64,31 @@ class LaunchDrum():
     # returns the current pressure in the system drum
     def getPressure(self) -> str:
         return "0"
+    
+    #---Pressurization subcommands---#
+    def pressurize(self,right: bool, left:bool)->None:
+        if(self._pressurization_stage == 0): #close the latches & solenoid A
+            self.pneumaticsStatesetUp(True,True,True,False,False,False)
+        if(self._pressurization_stage == 1): #close corresponding solenoids for empty rockets
+            self.pneumaticsStatesetUp(True,True,True,not right,not left,False)
+        if(self._pressurization_stage == 2): #turn on the air compressor
+            self.pneumaticsStatesetUp(True,True,True,not right,not left,True)
+        if(self._pressurization_stage == 2): #Close corresponding solenoids to trap air
+            self.pneumaticsStatesetUp(True,True,True,right,left,True)
+        
+        
+
+    # Simplifies the amount of function calls we have to type in the inbetween stages
+    def pneumaticsStatesetUp(self,rlatchOn:bool,llatchOn:bool,
+                             closeA:bool,closeB:bool,closeC:bool,compresOn:bool)->None:
+        self._serial.closeValveA(closeA)
+        self._serial.closeValveB(closeB)
+        self._serial.closeValveC(closeC)
+        self._serial.toggleCompressor(compresOn)
+        self._serial.toggleLeftLatch(llatchOn)
+        self._serial.toggleRightLatch(rlatchOn)
+        return
+
 
 if __name__ == "__main__":
     myLaunchDrum = LaunchDrum()

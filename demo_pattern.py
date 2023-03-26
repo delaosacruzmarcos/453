@@ -141,7 +141,7 @@ class Load(State):
 
     # if up button is pushed nothing should happen
     def pressurizeButton(self) -> None:
-        print("Already in the top floor")
+        print("Please load the rocket before you try to pressurize")
 
     def userText(self)->str:
         retStr = "Instructions\n\n"
@@ -184,8 +184,9 @@ class AimLeft(State):
 
     def pressurizeButton(self) -> None:
         #Begin pressurization sequence
+        print("begining pressurization sequence")
+        self.Launcher._drum.pressurize(self.Launcher.rightDrumActive(),self.Launcher.leftDrumActive())
         self.Launcher.setLauncher(Pressurize())
-        self.Launcher.update()
         return
 
     def userText(self)->str:
@@ -234,8 +235,9 @@ Left launch drum can be activated (transition to aim both state)
 class AimRight(State):
     def pressurizeButton(self) -> None:
         #Begin pressurization sequence
+        print("begining pressurization sequence")
+        self.Launcher._drum.pressurize(self.Launcher.rightDrumActive(),self.Launcher.leftDrumActive())
         self.Launcher.setLauncher(Pressurize())
-        self.Launcher.update()
         return
 
     def userText(self)->str:
@@ -281,8 +283,9 @@ Left & Right launch drum is active and taking move and elavate commands
 class AimBoth(State):
     def pressurizeButton(self) -> None:
         #Begin pressurization sequence
+        print("begining pressurization sequence")
+        self.Launcher._drum.pressurize(self.Launcher.rightDrumActive(),self.Launcher.leftDrumActive())
         self.Launcher.setLauncher(Pressurize())
-        self.Launcher.update()
         return
 
     def userText(self)->str:
@@ -323,14 +326,17 @@ class AimBoth(State):
 """    
 class Pressurize(State):
 
+
+
       # if down button is pushed it should move one floor down and open the door
     def update(self) -> None:
-        print("Launcher is changing to next state...")
-        self.Launcher.setLauncher(Launch())
+        print("Launcher is changing to pressurization")
+        #handle the current stage of the pressurization sequence
 
+        
     # if up button is pushed nothing should happen
     def pressurizeButton(self) -> None:
-        print("Already in the top floor")
+        print("Pressurization in process")
     
     def getStage(self)-> str:
         return "Pressurization"
@@ -353,6 +359,15 @@ class Pressurize(State):
 
     def processValue(self) -> int:
         return 0
+
+    # Both launch Drums should be locked
+    def rightDrumActive(self)->bool:
+        return False
+    
+    def leftDrumActive(self)->bool:
+        return False
+
+
 
 class Launch(State):
 

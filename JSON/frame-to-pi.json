@@ -1,0 +1,19 @@
+{
+  "_COMMENT": "json format sent from the arduino in the frame to the Pi",
+  "Actuators": {
+    "1": {
+      "pos": 1024,
+      "current_alarm": {
+        "left": 1024,
+        "right": 1024
+      }
+    },
+    "2": {
+      "pos": 1024,
+      "current_alarm": {
+        "left": 1024,
+        "right": 1024
+      }
+    }
+  }
+}

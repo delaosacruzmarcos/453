@@ -8,7 +8,7 @@ import serial
 import time
 import os
 import json
-import actuator
+#import actuator
 
 
 class Serial_Coms():
@@ -59,18 +59,42 @@ class Serial_Coms():
         return joy['right']
 
     #---Communication---#
-    # Called to update the internal datastructure with new information
+    # Called to update the internal  datastructure with new information
     def read(self) -> None:
         pass
 
     # Sends the current command to the arduino
     def write(self) -> None:
-        pass
+        json_object = json.dumps(self.create_arduino_commanded)
+        return
 
     # Handles updating the command dict with given information
     def updateCommand(self) -> None:
         pass
 
+    # writes json bundle commanding arduino to activate Valve A (close the valve)
+    def ValveManager(self, A:bool, B:bool, C:bool)->None:
+        solDic:dict = self._arduinoCommanded['Solenoids']
+        solDic['OpenA'] = A
+        solDic['OpenB'] = B
+        solDic['OpenC'] = C
+        self.write()
+        return
+
+    # writes json bundle commanding arduino to turn on the air compressor
+    def toggleCompressor(self, turnOn: bool)->None:
+        solDic:dict = self._arduinoCommanded['Compressor']
+        solDic["turnOn"] = turnOn
+        self.write()
+        return
+        
+    # writes json bundle that engages the left latch (Closes and holds)
+    def toggleLatches(self, OpenLeft: bool, OpenRight: bool)->None:
+        solDic:dict = self._arduinoCommanded['Latches']
+        solDic["OpenRight"] = OpenRight
+        solDic["OpenLeftt"] = OpenLeft 
+        self.write()
+        return
 
 def begin():
     controlFile = open("/JSON/arduino-control.json", 'r')
@@ -138,3 +162,13 @@ def begin():
                 print(err, bytes(controlData))
 
 
+if __name__ == "__main__":
+    # The testing code
+    mySerial = Serial_Coms()
+    print(mySerial._arduinoCommanded)
+    mySerial.ValveManager(False,False,False)
+    print(mySerial._arduinoCommanded)
+    mySerial.toggleCompressor(True)
+    print(mySerial._arduinoCommanded)
+    mySerial.toggleLatches(True,True)
+    print(mySerial._arduinoCommanded)

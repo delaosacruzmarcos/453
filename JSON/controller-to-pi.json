@@ -1,0 +1,20 @@
+{
+    "_COMMENT": "json format is sent from the arduino in the controller to the Pi",
+    "Joysticks": {
+        "left": {
+            "x": 512, 
+            "y": 512,
+        },
+        "right": {
+            "x": 512,
+            "y": 512,
+        }
+    },
+    "Switches": {
+        "leftOn": false, 
+        "rightOn": false
+    },
+    "Button": {
+        "Pressed": false
+    }
+}

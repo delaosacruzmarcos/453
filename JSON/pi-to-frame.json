@@ -1,0 +1,32 @@
+{
+    "_COMMENT": "json format is sent from the Pi to the arduino in the frame",
+    "Actuators": {
+        "left": {
+            "move_to": 1024
+        },
+        "right": {
+            "move_to": 0
+        }
+    },
+    "Motors": {
+        "left": {
+            "move_to": 1024
+        },
+        "right": {
+            "move_to": 0
+        }
+    },
+    "Solenoids": {
+        "OpenA": true,
+        "OpenB": true,
+        "OpenC": true
+    },
+    "Latches": {
+        "OpenRight": true,
+        "OpenLeft": true
+    },
+    "Compressor": {
+        "turnOn" : true
+    }
+}
+
