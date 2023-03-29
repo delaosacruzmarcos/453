@@ -28,16 +28,16 @@ It uses two way serial communication. Sending positional data to the Pi and reci
 #define ACTUATOR_PRECISION 1
 
 // pneumatics - not wired officially yet
-#define SOLENOID_A 12
-#define SOLENOID_B 13
+#define SOLENOID_A 10
+#define SOLENOID_B 11
 #define SOLENOID_C 14
 #define AIR_COMPRESSOR 15
 #define RIGHT_LATCH 16
 #define LEFT_LATCH 17 
 #define PRESSURE_SENSOR A6
 
-#define SEND_DATA_WARNING 33      // set to high (temporarily) to cause incoming data interrupt on the Pi
-#define RECIEVE_DATA_WARNING 34   // High when the pi is sending data to us (never used)
+#define SEND_DATA_WARNING 12      // set to high (temporarily) to cause incoming data interrupt on the Pi
+#define RECIEVE_DATA_WARNING 13   // High when the pi is sending data to us (never used)
 
 //---------------Declarations-----------//
 void setUpGPIO();
@@ -120,9 +120,9 @@ StaticJsonDocument<192> doc;
   Serial.write('\n');
 
   // Lets the Pi know wesent a message (Pi interrupts triggered)
-  pinMode(SEND_DATA_WARNING, HIGH);
+  digitalWrite(SEND_DATA_WARNING, HIGH);
   delay(100);
-  pinMode(SEND_DATA_WARNING, LOW);
+  digitalWrite(SEND_DATA_WARNING, LOW);
   return;
 }
 
@@ -238,7 +238,7 @@ void setup() {
   pinMode(ACTUATOR_1_EXTEND_PIN, OUTPUT);
   pinMode(ACTUATOR_1_RETRACT_PIN, OUTPUT);
   serialSetUp();
-  SetUPpneumatics();
+  setUpPneumatics();
 }
 
 void loop() {

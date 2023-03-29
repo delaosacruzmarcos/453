@@ -8,45 +8,94 @@ import serial
 import time
 import os
 import json
+import subprocess
 #import actuator
 
 
 class Serial_Coms():
 
-    #holds current ardunio state
-    _arduinoInfo: dict = None
-    #holds the information we want to send to the arduino
-    _arduinoCommanded: dict = None
+    #Holds file path and communication info for the arduino boards
+    _arduinoInfo: dict = {
+        "Frame": {
+            "board": "mega2560",
+            "port": "/dev/ttyACM0",
+            "path": "/home/pi/Desktop/453/arduino/InFrame/InFrame.ino"
+        },
+        "Controller":{
+            "board": "Arduino Uno",
+            "port": "/dev/ttyACM1",
+            "path": "/home/pi/Desktop/453/arduino/InController/InController.ino"
+        }
+    }
+
+    # Information contained within the most recent controller-to-pi.json file
+    _controller_to_pi_message: dict = None
+
+    # Information conatined within the most recent frame-to-pi.json
+    _frame_to_pi_message: dict = None
+
+    # Information contained within the most recent pi-to-frame.json
+    _pi_to_frame_message: dict = None
+
+    # information contained within the most recent pi-to-controller.json
+    _pi_to_controller_message:dict = None
+
+    # Serial connection to the Frame
+    _serFrame: serial.Serial = None
+
+    # Serial connection to the Controller
+    _serController: serial.Serial = None
 
     def __init__(self) -> None:
         print('debug')
         self.create_arduino_commanded()
-        self.create_arduinoInfo()
+        self.create_controller_message()
        # self.serial_begin()
+
+    # Uploads the .ino files, runs on start up
+    def uploadSketches(self)->None:
+        # (Frame) Mega sketch upload
+        board = self._arduinoInfo["Frame"]["board"]
+        port = self._arduinoInfo["Frame"]["port"]
+        path = self._arduinoInfo["Frame"]["path"]
+        result = subprocess.run(['avrdude', "-v","-p", board, "-c", "wiring", "-P", port,"-U","flash:w:"+path+":i"],capture_output=True)
+        print(result.stdout.decode())
+
+        # (Controller) Uno sketch upload
+        board = self._arduinoInfo["Controller"]["board"]
+        port = self._arduinoInfo["Controller"]["port"]
+        path = self._arduinoInfo["Controller"]["path"]
+        result = subprocess.run(['avrdude', "-v","-p", board, "-c", "wiring", "-P", port,"-U","flash:w:"+path+":i"],capture_output=True)
+        print(result.stdout.decode())
+        return
+
 
     def create_arduino_commanded(self) -> None:
         filePath = os.getcwd()
-        filePath = os.path.join(filePath,"JSON\\arduino-control.json") #path \ must be replaced with / for linux
+        filePath = os.path.join(filePath,"JSON/pi-to-frame.json") #path \\ must be replaced with / for linux
         controlFile = open(filePath, 'r')
         self._arduinoCommanded = json.load(controlFile)
         controlFile.close()
 
     # Creates dictionary data structure
-    def create_arduinoInfo(self) -> None:
+    def create_controller_message(self) -> None:
         filePath = os.getcwd()
-        filePath = os.path.join(filePath,"JSON\\arduino-json-form.json") #path \ must be replaced with / for linux
+        filePath = os.path.join(filePath,"JSON/frame-to-pi.json") #path \\ must be replaced with / for linux
         controlFile = open(filePath, 'r')
-        self._arduinoInfo = json.load(controlFile)
+        self._controller_message = json.load(controlFile)
         controlFile.close()
         
     # starts serial communication
     def serial_begin(self) -> None:
         # Name of our attached arduino
-        arduino = '/dev/ttyACM0'
+        controllerBoard = self._arduinoInfo["Controller"]["board"]
+        frameBoard = self._arduinoInfo["Frame"]["board"]
         # We want to keep the baud rate consistent on Arduino and RasPi
         baud = 9600
-        ser = serial.Serial(arduino, baud, timeout=5)
-        ser.reset_input_buffer()
+        serController = serial.Serial(controllerBoard, baud, timeout=5)
+        serFrame = serial.Serial(frameBoard, baud, timeout=5)
+        self._serController.reset_input_buffer()
+        self._serFrame.reset_input_buffer()
         return
 
     # gets the Raw data for the left drum
@@ -55,13 +104,32 @@ class Serial_Coms():
 
     # gets the Raw data for the right drum
     def get_R_arduino_info(self) -> dict:
-        joy = self._arduinoInfo['joysticks']
+        joy = self._controller_message['joysticks']
         return joy['right']
 
     #---Communication---#
     # Called to update the internal  datastructure with new information
-    def read(self) -> None:
-        pass
+    def readFrame(self) -> None:
+        pass 
+
+    # Called to update the controller datastructure
+    def readController(self) -> None:
+        while self._serController.readable():
+            # read from controller arduino 
+            line = self._serController.readline()
+            # attempt to process readings
+            try:
+                data = line.decode('ascii').rstrip()
+                data = json.loads(data)
+
+                com = data["COM"]
+                joystick_readings = data[JOYSTICK_KEY]
+                actuator_readings = data[ACTUATOR_KEY]
+                pressure_readings = data[PRESSURE_KEY]
+                print(actuator_readings, pressure_readings)
+            except Exception as err:
+                print(err, line)
+
 
     # Sends the current command to the arduino
     def write(self) -> None:

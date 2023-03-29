@@ -10,17 +10,17 @@ Purpose: This sketch controls the arduino located within the controller box
 #include <Arduino.h>
 #include <ArduinoJson.h>
 
-//---------------PIN-I/O-----------//
+//-----------------PIN-I/O-----------//
 #define PRESSURIZE_BUTTON 2
 #define LEFT_JOY_X_PIN A0
 #define LEFT_JOY_Y_PIN A1 
-#define LEFT_SWITCH_PIN 23 
+#define LEFT_SWITCH_PIN 3 
 #define RIGHT_JOY_X_PIN A2
 #define RIGHT_JOY_Y_PIN A3
 #define RIGHT_SWITCH_PIN 22
 
-#define SEND_DATA_WARNING 33      // set to high (temporarily) to cause incoming data interrupt on the Pi
-#define RECIEVE_DATA_WARNING 34   // High when the pi is sending data to us (never used)
+#define SEND_DATA_WARNING 12      // set to high (temporarily) to cause incoming data interrupt on the Pi
+#define RECIEVE_DATA_WARNING 13   // High when the pi is sending data to us (never used)
 
 //---------------Declarations-----------//
 void setUpGPIO();
@@ -28,7 +28,7 @@ void updateGPIO();
 void sendResponse();
 
 //---------------Globals-----------//
-typedef struct JoySwitchInfo {
+struct JoySwitchInfo {
   int _x = 0;
   int _y = 0;
   bool _sw = false;
@@ -93,9 +93,9 @@ void sendResponse() {
   Serial.write('\n');
 
   // Lets the Pi know wesent a message (Pi interrupts triggered)
-  pinMode(SEND_DATA_WARNING, HIGH);
+  digitalWrite(SEND_DATA_WARNING, HIGH);
   delay(100);
-  pinMode(SEND_DATA_WARNING, LOW);
+  digitalWrite(SEND_DATA_WARNING, LOW);
   return;
 }
 

@@ -31,5 +31,5 @@ class Pinout():
             print("No pin with corresp ")
 
     # Returns the GPIO Pin dictionary
-    def getGPIOKeys(self) -> dict[str, list[str]]:
+    def getGPIOKeys(self) -> dict:
         return self.GPIOKEYS
