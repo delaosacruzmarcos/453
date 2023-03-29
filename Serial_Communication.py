@@ -122,11 +122,15 @@ class Serial_Coms():
                 data = line.decode('ascii').rstrip()
                 data = json.loads(data)
 
-                com = data["COM"]
-                joystick_readings = data[JOYSTICK_KEY]
-                actuator_readings = data[ACTUATOR_KEY]
-                pressure_readings = data[PRESSURE_KEY]
-                print(actuator_readings, pressure_readings)
+                #Copy the information from the json to our serial object
+                self._controller_to_pi_message["Joysticks"]["left"]["x"] = data["Joysticks"]["left"]["x"]
+                self._controller_to_pi_message["Joysticks"]["left"]["y"] = data["Joysticks"]["left"]["y"]
+                self._controller_to_pi_message["Joysticks"]["right"]["x"] = data["Joysticks"]["right"]["x"]
+                self._controller_to_pi_message["Joysticks"]["right"]["x"] = data["Joysticks"]["right"]["x"]
+                self._controller_to_pi_message["Switches"]["leftOn"] = data["Switches"]["leftOn"]
+                self._controller_to_pi_message["Switches"]["rightOn"] = data["Switches"]["rightOn"]
+                self._controller_to_pi_message["Button"]["Pressed"] = data["Button"]["Pressed"]
+                print(self._controller_to_pi_message)
             except Exception as err:
                 print(err, line)
 
