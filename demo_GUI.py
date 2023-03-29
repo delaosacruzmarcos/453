@@ -49,6 +49,7 @@ class App(customtkinter.CTk):
     # Handles updating event
     def updateGUI(self,event):
         print("update occured")
+        self.updateGUIHandler()
 
     # Handles updating the GUI
     def updateGUIHandler(self) -> None:
@@ -181,6 +182,13 @@ class App(customtkinter.CTk):
         #update GUI
         self.event_add('<<update-GUI>>','<u>')
         self.bind('<<update-GUI>>',self.updateGUI)
+
+        #just for testing atm
+        self.event_add("<<controller_message_recieved>>", '<c>')
+        self.bind('<<controller_message_recieved>>', self.updateGUI)
+
+        self.event_add("<<frame_message_recieved>>", '<f>')
+        self.bind('<<frame_message_recieved>>', self.updateGUI)
 
 
     # Update launch drums on screen  

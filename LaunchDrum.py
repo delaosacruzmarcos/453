@@ -27,7 +27,8 @@ class LaunchDrum():
         rotation = self.getRRotation()
         launch = self.getRHeight()
         press = self.getPressure()
-        return self.formatting(rotation,launch, press)
+        (joyX, joyY) = self.getJoyRight()
+        return self.formatting(rotation,launch, press, joyX, joyY)
 
 
     #left drum Information to be displayed to the user
@@ -35,14 +36,16 @@ class LaunchDrum():
         rotation = self.getLRotation()
         launch = self.getLHeight()
         press = self.getPressure()
-        return self.formatting(rotation,launch, press)
+        (joyX, joyY) = self.getJoyLeft()
+        return self.formatting(rotation,launch, press, joyX, joyY)
 
     
-    def formatting(self,rotation, launch, press) -> str:
+    def formatting(self,rotation, launch, press, x, y) -> str:
         retStr = "Rotation: {}\n\n".format(rotation)
         str1 = "Angle of launch: {}\n\n".format(launch)
         str2 = "Pressurization level: {}%\n\n".format(press)
-        return retStr+str1+str2
+        str3 = "Joystick x: "+str(x)+"\nJoystick y: "+str(y)
+        return retStr+str1+str2+str3
 
     
     # returns the angle of elevation of the right launch drum
@@ -65,6 +68,16 @@ class LaunchDrum():
     def getPressure(self) -> str:
         return "0"
     
+    def getJoyRight(self)->tuple:
+        x = self._serial._controller_to_pi_message["Joysticks"]["right"]["x"]
+        y = self._serial._controller_to_pi_message["Joysticks"]["right"]["y"]
+        return (x,y)
+
+    def getJoyLeft(self)->tuple:
+        x = self._serial._controller_to_pi_message["Joysticks"]["left"]["x"]
+        y = self._serial._controller_to_pi_message["Joysticks"]["left"]["y"]
+        return (x,y)                                                  
+
     #---Pressurization subcommands---#
     def pressurize(self,right: bool, left:bool)->None:
         if(self._pressurization_stage == 0): #close the latches & solenoid A
