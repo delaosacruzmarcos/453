@@ -76,9 +76,9 @@ class Serial_Coms():
         GPIO.remove_event_detect(frame_message_recieved)
 
         # adding the call backs
-        GPIO.add_event_detect(controller_message_recieved, GPIO.BOTH, 
+        GPIO.add_event_detect(controller_message_recieved, GPIO.RISING, 
                               callback=lambda x: self.keystroke_callback("controller_message_recieved"))
-        GPIO.add_event_detect(frame_message_recieved, GPIO.BOTH, 
+        GPIO.add_event_detect(frame_message_recieved, GPIO.RISING, 
                               callback=lambda x: self.keystroke_callback("frame_message_recieved"))
         self.create_controller_message()
         self.serial_begin()

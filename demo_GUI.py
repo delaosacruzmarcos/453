@@ -36,7 +36,6 @@ class App(customtkinter.CTk):
         # tie this to the state machine
         print("left switch")
         self.user_state.leftSwitchToggle()
-        self.updateGUIHandler()
 
     
     # Handles the right switch event
@@ -44,20 +43,18 @@ class App(customtkinter.CTk):
         # tie this to the state machine
         print("right switch toggled")
         self.user_state.rightSwitchToggle()
-        self.updateGUIHandler()
 
     # Handles updating event
-    def updateGUI(self,event):
+    def updateGUIHandler(self,event):
         print("update occured")
-        self.updateGUIHandler()
-
-    # Handles updating the GUI
-    def updateGUIHandler(self) -> None:
+        stage: str = self.user_state.getStage()
+        if(stage != self.current_state):
+            self.tabview.set(stage)
+            self.updateUserText()
+            print(stage)
+            self.current_state = stage
         self.updateLaunchDrumInformation()
-        self.updateUserText()
-        stage = self.user_state.getStage()
-        print(stage)
-        self.tabview.set(stage)
+
 
     def __init__(self, Launcher: Launcher, pinout: Pinout):
         super().__init__()
@@ -65,6 +62,7 @@ class App(customtkinter.CTk):
         #Launch Drum controllers
         self.Drum = LaunchDrum()
         self.user_state = Launcher
+        self.current_state = Launcher.getStage()
         self.pinout = pinout
         #self.switch = switch
 
@@ -181,14 +179,14 @@ class App(customtkinter.CTk):
         self.bind('<<right-switch>>',self.rightSwitchToggle)
         #update GUI
         self.event_add('<<update-GUI>>','<u>')
-        self.bind('<<update-GUI>>',self.updateGUI)
+        self.bind('<<update-GUI>>',self.updateGUIHandler)
 
         #just for testing atm
         self.event_add("<<controller_message_recieved>>", '<c>')
-        self.bind('<<controller_message_recieved>>', self.updateGUI)
+        self.bind('<<controller_message_recieved>>', self.updateGUIHandler)
 
         self.event_add("<<frame_message_recieved>>", '<f>')
-        self.bind('<<frame_message_recieved>>', self.updateGUI)
+        self.bind('<<frame_message_recieved>>', self.updateGUIHandler)
 
 
     # Update launch drums on screen  
