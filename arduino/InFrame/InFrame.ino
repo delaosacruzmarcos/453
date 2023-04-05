@@ -28,16 +28,16 @@ It uses two way serial communication. Sending positional data to the Pi and reci
 #define ACTUATOR_PRECISION 1
 
 // pneumatics - not wired officially yet
-#define SOLENOID_A 10
-#define SOLENOID_B 11
-#define SOLENOID_C 14
+#define SOLENOID_A 11
+#define SOLENOID_B 12
+#define SOLENOID_C 13
 #define AIR_COMPRESSOR 15
 #define RIGHT_LATCH 16
 #define LEFT_LATCH 17 
 #define PRESSURE_SENSOR A6
 
-#define SEND_DATA_WARNING 12      // set to high (temporarily) to cause incoming data interrupt on the Pi
-#define RECIEVE_DATA_WARNING 13   // High when the pi is sending data to us (never used)
+#define SEND_DATA_WARNING 8    // set to high (temporarily) to cause incoming data interrupt on the Pi
+#define RECIEVE_DATA_WARNING 9  // High when the pi is sending data to us (never used)
 
 //---------------Declarations-----------//
 void setUpGPIO();

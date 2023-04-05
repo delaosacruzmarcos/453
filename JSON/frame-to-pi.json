@@ -15,5 +15,17 @@
         "right": 1024
       }
     }
+  },
+  "Solenoids": {
+    "OpenA": true,
+    "OpenB": true,
+    "OpenC": true
+  },
+  "Latches": {
+      "OpenRight": true,
+      "OpenLeft": true
+  },
+  "Compressor": {
+      "turnOn" : true
   }
 }

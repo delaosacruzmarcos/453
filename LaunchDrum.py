@@ -91,15 +91,12 @@ class LaunchDrum():
         
         
 
-    # Simplifies the amount of function calls we have to type in the inbetween stages
+    # Simplifies the amount of function calls we have to type in the in between stages
     def pneumaticsStatesetUp(self,rlatchOn:bool,llatchOn:bool,
                              closeA:bool,closeB:bool,closeC:bool,compresOn:bool)->None:
-        self._serial.closeValveA(closeA)
-        self._serial.closeValveB(closeB)
-        self._serial.closeValveC(closeC)
+        self._serial.ValveManager(closeA, closeB, closeC)
         self._serial.toggleCompressor(compresOn)
-        self._serial.toggleLeftLatch(llatchOn)
-        self._serial.toggleRightLatch(rlatchOn)
+        self._serial.toggleLatches(llatchOn, rlatchOn)
         return
 
 

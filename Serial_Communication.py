@@ -1,7 +1,7 @@
 # --------------- #
 # Team Rocket 2023
 # Author Marcos De La Osa Cruz
-# Class to handle talking to and from the arduino
+# Class to handle talking to and from the arduinos
 
 import serial
 import time
@@ -50,8 +50,9 @@ class Serial_Coms():
 
     def __init__(self) -> None:
         print('debug')
-        self.create_arduino_commanded()
-        self.create_controller_message()
+        self.create_controller_to_pi()
+        self.create_pi_to_frame()
+        self.create_frame_to_pi()
         self._pins = Pinout()
                 # The actual pinout is defined in pinout.py
         frame_message_send = self._pins.getGPIOPINS("frame_message_send")
@@ -80,7 +81,6 @@ class Serial_Coms():
                               callback=lambda x: self.keystroke_callback("controller_message_recieved"))
         GPIO.add_event_detect(frame_message_recieved, GPIO.RISING, 
                               callback=lambda x: self.keystroke_callback("frame_message_recieved"))
-        self.create_controller_message()
         self.serial_begin()
 
     #keystroke call backs
@@ -114,23 +114,35 @@ class Serial_Coms():
         print(result.stdout.decode())
         return
 
-
-    def create_arduino_commanded(self) -> None:
+#-----------Create the dictionaries----------
+    def create_pi_to_frame(self, printout:bool = False) -> None:
         filePath = os.getcwd()
         filePath = os.path.join(filePath,"JSON/pi-to-frame.json") #path \\ must be replaced with / for linux
         controlFile = open(filePath, 'r')
-        self._arduinoCommanded = json.load(controlFile)
+        self._pi_to_frame_message = json.load(controlFile)
+        if (printout):
+            print(self._pi_to_frame_message)
         controlFile.close()
 
-    # Creates dictionary data structure
-    def create_controller_message(self) -> None:
+    def create_controller_to_pi(self, printout:bool = False)-> None:
         filePath = os.getcwd()
         filePath = os.path.join(filePath,"JSON/controller-to-pi.json") #path \\ must be replaced with / for linux
         controlFile = open(filePath, 'r')
-        self._controller_to_pi_message = json.load(controlFile)
-        print(self._controller_to_pi_message)
+        self._pi_to_controller_message = json.load(controlFile)
+        if (printout):
+            print(self._pi_to_controller_message)
         controlFile.close()
-        
+
+    # Creates dictionary data structure
+    def create_frame_to_pi(self, printout:bool = False) -> None:
+        filePath = os.getcwd()
+        filePath = os.path.join(filePath,"JSON/frame-to-pi.json") #path \\ must be replaced with / for linux
+        controlFile = open(filePath, 'r')
+        self._frame_to_pi_message = json.load(controlFile)
+        if (printout):
+            print(self._controller_to_pi_message)
+        controlFile.close()
+
     # starts serial communication
     def serial_begin(self) -> None:
         # Name of our attached arduino
@@ -156,8 +168,7 @@ class Serial_Coms():
 
     #---Communication---#
     # Called to update the internal  datastructure with new information
-    def readFrame(self) -> None:
-        pass 
+    # TODO make sure to update this when we add more stuff to the communication
 
     # Called to update the controller datastructure
     def readController(self) -> None:
@@ -182,39 +193,98 @@ class Serial_Coms():
             except Exception as err:
                 print(err, line)
 
+    # Called in response to the fram interrupt to parse the frame json message
+    def readFrame(self) -> None:
+        while self._mega.readable():
+            # read from controller arduino 
+            line = self._mega.readline()
+            # attempt to process readings
+            try:
+                data = line.decode('ascii').rstrip()
+                data = json.loads(data)
 
-    # Sends the current command to the arduino
+                #Copy the information from the json to our serial object
+                self._frame_to_pi_message["Solenoids"]["OpenA"] = data["Solenoids"]["OpenA"]
+                self._frame_to_pi_message["Solenoids"]["OpenB"] = data["Solenoids"]["OpenB"]
+                self._frame_to_pi_message["Solenoids"]["OpenC"] = data["Solenoids"]["OpenC"] 
+                self._frame_to_pi_message["Compressor"]["turnOn"] = data["Compressor"]["turnOn"]
+                print(self._controller_to_pi_message)
+                return
+            except Exception as err:
+                print(err, line)
+
+
+    # Sends the current commands to their respective arduino
     def write(self) -> None:
         #json_object = json.dumps(self.create_arduino_commanded)
+
+        # use these two dicts
+        self._pi_to_frame_message
+        self._pi_to_controller_message
+
+
+        frameSer  = serial.Serial(self._arduinoInfo["Frame"]["port"], baudrate= 9600, 
+        timeout=2.5, 
+        parity=serial.PARITY_NONE, 
+        bytesize=serial.EIGHTBITS, 
+        stopbits=serial.STOPBITS_ONE
+        )
+        controllerSer  = serial.Serial(self._arduinoInfo["Controller"]["port"], baudrate= 9600, 
+        timeout=2.5, 
+        parity=serial.PARITY_NONE, 
+        bytesize=serial.EIGHTBITS, 
+        stopbits=serial.STOPBITS_ONE
+        )
+        frameData = self._pi_to_frame_message
+        controllerData = self._pi_to_controller_message
+        frameData = json.dumps(frameData)
+        controllerData = json.dumps(controllerData)
+
+        print("This is the json sending to the frame\n", frameData)
+        print("This is the json sending to the controller\n", controllerData)
+
+        #Code to open and read from the frame connection
+        if self._mega.isOpen():
+            self._mega.write(frameData.encode('ascii'))
+            self._mega.flush()
+        else:
+            print('Something up, mega serial port is not open')
+
+        #Code to open and read from the controller connection
+        #TODO update thos
+        if self._uno.isOpen():
+            self._uno.write(controllerData.encode('ascii'))
+            self._uno.flush()
+        else:
+            print("Something up, uno serial port is not open'")
         return
+
 
     # Handles updating the command dict with given information
     def updateCommand(self) -> None:
         pass
 
     # writes json bundle commanding arduino to activate Valve A (close the valve)
-    def ValveManager(self, A:bool, B:bool, C:bool)->None:
-        solDic:dict = self._arduinoCommanded['Solenoids']
-        solDic['OpenA'] = A
-        solDic['OpenB'] = B
-        solDic['OpenC'] = C
+    def ValveManager(self, openA:bool, openB:bool, openC:bool)->None:
+        self._pi_to_frame_message["Solenoids"]["OpenA"] = openA
+        self._pi_to_frame_message["Solenoids"]["OpenB"] = openB
+        self._pi_to_frame_message["Solenoids"]["OpenC"] = openC
         self.write()
         return
 
     # writes json bundle commanding arduino to turn on the air compressor
     def toggleCompressor(self, turnOn: bool)->None:
-        solDic:dict = self._arduinoCommanded['Compressor']
-        solDic["turnOn"] = turnOn
+        self._pi_to_frame_message["Compressor"]["turnOn"] = turnOn
         self.write()
         return
         
     # writes json bundle that engages the left latch (Closes and holds)
     def toggleLatches(self, OpenLeft: bool, OpenRight: bool)->None:
-        solDic:dict = self._arduinoCommanded['Latches']
-        solDic["OpenRight"] = OpenRight
-        solDic["OpenLeftt"] = OpenLeft 
+        self._pi_to_frame_message["Latches"]["OpenLeft"] = OpenLeft
+        self._pi_to_frame_message["Latches"]["OpenRight"] = OpenRight
         self.write()
         return
+    
 
 def begin():
     controlFile = open("/JSON/arduino-control.json", 'r')
