@@ -49,7 +49,7 @@ class Serial_Coms():
     _pi_to_controller_message:dict = {}
 
     def __init__(self) -> None:
-        print('debug')
+        print('new serial generated')
         self.create_controller_to_pi()
         self.create_pi_to_frame()
         self.create_frame_to_pi()
@@ -63,7 +63,12 @@ class Serial_Coms():
         # We will always be using the BCM mode
         GPIO.setmode(GPIO.BOARD)
 
-        print (self._controller_message_recieved)
+        #Populating the dictionary
+        self.create_controller_to_pi(True)
+        self.create_frame_to_pi(True)
+        self.create_pi_to_frame(True)
+
+
         # Setting them up to recieve input
         GPIO.setup(self._frame_message_recieved, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
         GPIO.setup(self._controller_message_recieved, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
@@ -85,8 +90,9 @@ class Serial_Coms():
 
     #keystroke call backs
     def keystroke_callback(self,key:str)->None:
-        print("keystroke callback being called")
+        print("keystroke callback being called", key)
         if(key == "frame_message_recieved"): # recieved a message from the frame
+            self.readFrame()
             list = self._pins.getGPIOKeys().get('<<frame-message-recieved>>')
             press(list[1])
             return
@@ -127,16 +133,16 @@ class Serial_Coms():
         controlFile = open(filePath, 'r')
         self._pi_to_frame_message = json.load(controlFile)
         if (printout):
-            print(self._pi_to_frame_message)
+            print("pi to frame: \n",self._pi_to_frame_message)
         controlFile.close()
 
     def create_controller_to_pi(self, printout:bool = False)-> None:
         filePath = os.getcwd()
         filePath = os.path.join(filePath,"JSON/controller-to-pi.json") #path \\ must be replaced with / for linux
         controlFile = open(filePath, 'r')
-        self._pi_to_controller_message = json.load(controlFile)
+        self._controller_to_pi_message = json.load(controlFile)
         if (printout):
-            print(self._pi_to_controller_message)
+            print("controller to pi: \n",self._controller_to_pi_message)
         controlFile.close()
 
     # Creates dictionary data structure
@@ -146,7 +152,7 @@ class Serial_Coms():
         controlFile = open(filePath, 'r')
         self._frame_to_pi_message = json.load(controlFile)
         if (printout):
-            print(self._controller_to_pi_message)
+            print("frame to pi: \n",self._frame_to_pi_message)
         controlFile.close()
 
     # starts serial communication
@@ -193,22 +199,19 @@ class Serial_Coms():
                 self._controller_to_pi_message["Joysticks"]["right"]["x"] = data["Joysticks"]["right"]["x"]
 
                 if self._controller_to_pi_message["Switches"]["leftOn"] != data["Switches"]["leftOn"]:
-                    self.keystroke_callback('left-switch')
                     self._controller_to_pi_message["Switches"]["leftOn"] = data["Switches"]["leftOn"]
-                
+                    self.keystroke_callback('left-switch')
                 if self._controller_to_pi_message["Switches"]["rightOn"] != data["Switches"]["rightOn"]:
-                    self.keystroke_callback('right-switch')
                     self._controller_to_pi_message["Switches"]["rightOn"] = data["Switches"]["rightOn"]
-
+                    self.keystroke_callback('right-switch')
                 if self._controller_to_pi_message["Button"]["Pressed"] != data["Button"]["Pressed"]:
-                    self.keystroke_callback('pressurization_button_pressed')
                     self._controller_to_pi_message["Button"]["Pressed"] = data["Button"]["Pressed"]
+                    self.keystroke_callback('pressurization_button_pressed')
                 
-                print(self._controller_to_pi_message)
+                print("from read Controller: \n",self._controller_to_pi_message)
                 return
             except Exception as err:
                 print(err, line)
-
 
     # Called in response to the fram interrupt to parse the frame json message
     def readFrame(self) -> None:

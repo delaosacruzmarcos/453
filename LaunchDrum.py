@@ -50,25 +50,31 @@ class LaunchDrum():
     
     # returns the angle of elevation of the right launch drum
     def getRHeight(self):
-        return "30%"
+        x , y = self.getJoyRight()
+        return str(y)
     
     # returns the rotation of the right launch drum
     def getRRotation(self) -> str:
-        return "180"
+        x , y = self.getJoyRight()
+        return str(x)
     
     # returns the angle of elevation of the Left launch drum
     def getLHeight(self):
-        return "30%"
+        x , y = self.getJoyLeft()
+        return str(y)
     
     # returns the rotation of the left launch drum
+    # Want to process this a bit more, but works for testing
     def getLRotation(self) -> str:
-        return "180"
+        x , y = self.getJoyLeft()
+        return str(x)
     
     # returns the current pressure in the system drum
     def getPressure(self) -> str:
         return "0"
     
     def getJoyRight(self)->tuple:
+        print("This is the serial's copy: \n", self._serial._controller_to_pi_message)
         x = self._serial._controller_to_pi_message["Joysticks"]["right"]["x"]
         y = self._serial._controller_to_pi_message["Joysticks"]["right"]["y"]
         return (x,y)

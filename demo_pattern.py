@@ -9,18 +9,23 @@ class Launcher:
     # Variables of interest
     _state = None
     _drum: LaunchDrum = None
+    _pins = None
 
     def __init__(self, state: State) -> None:
         self.setLauncher(state)
+        self.setupSerial()
         
+    #tracks the serial initation (only happens once)
+    def setupSerial(self):
+        self._pins = Pinout()
+        self._drum = LaunchDrum()
 
     # method to change the state of the object
     def setLauncher(self, state: State):
         self._state = state
         self._state.Launcher = self
-        self._pins = Pinout()
         self._state.Launcher._pins = self._pins
-        self._drum = LaunchDrum()
+        self._state.Launcher._drum = self._drum
 
 
     def presentState(self):
@@ -131,6 +136,9 @@ class State(ABC):
 
 class Load(State):
 
+    _drum: LaunchDrum = None
+    _pins = None
+
       # if down button is pushed it should move one floor down and open the door
     def update(self) -> None:
         print("Launcher is changing to next state...")
@@ -160,10 +168,14 @@ class Load(State):
     def leftSwitchToggle(self)->None:
         print("Launcher is changing to next state...")
         self.Launcher.setLauncher(AimLeft())
+        self.Launcher.update()
+
 
     def rightSwitchToggle(self)->None:
         print("Launcher is changing to next state...")
         self.Launcher.setLauncher(AimRight())
+        self.Launcher.update()
+
 
     # Neither launch Drum should move now
     def rightDrumActive(self)->bool:
@@ -181,6 +193,8 @@ Right launch drum can be activated (transition to aim both state)
 """
 class AimLeft(State):
 
+    _drum: LaunchDrum = None
+    _pins = None
 
     def pressurizeButton(self) -> None:
         #Begin pressurization sequence
@@ -224,7 +238,7 @@ class AimLeft(State):
         return True 
     
     def processValue(self) -> int:
-        return 0
+        return 1
     
 
 """
@@ -233,6 +247,10 @@ Right launch drum is active and taking move and elavate commands
 Left launch drum can be activated (transition to aim both state)
 """
 class AimRight(State):
+
+    _drum: LaunchDrum = None
+    _pins = None
+
     def pressurizeButton(self) -> None:
         #Begin pressurization sequence
         print("begining pressurization sequence")
@@ -275,12 +293,16 @@ class AimRight(State):
         return False
     
     def processValue(self) -> int:
-        return 0
+        return 2
 """
 ---AimBoth---
 Left & Right launch drum is active and taking move and elavate commands
 """
 class AimBoth(State):
+
+    _drum: LaunchDrum = None
+    _pins = None
+
     def pressurizeButton(self) -> None:
         #Begin pressurization sequence
         print("begining pressurization sequence")
@@ -319,7 +341,7 @@ class AimBoth(State):
         return True
     
     def processValue(self) -> int:
-        return 0
+        return 3
     
 """
 ---Pressurize---

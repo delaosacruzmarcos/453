@@ -56,8 +56,8 @@ void updateGPIO(){
     right._y = analogRead(RIGHT_JOY_Y_PIN);
     right._sw = digitalRead(RIGHT_SWITCH_PIN);
     left._x = analogRead(LEFT_JOY_X_PIN);
-    left._x = analogRead(LEFT_JOY_X_PIN);
-    right._sw = digitalRead(LEFT_SWITCH_PIN);
+    left._y = analogRead(LEFT_JOY_Y_PIN);
+    left._sw = digitalRead(LEFT_SWITCH_PIN);
     return;
 }
 
@@ -111,6 +111,8 @@ void loop() {
     pButton = true;
   }
   updateGPIO();
+  delay(10);
   sendResponse();
+
   delay(500);
 }

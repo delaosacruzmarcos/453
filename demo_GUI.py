@@ -34,8 +34,9 @@ class App(customtkinter.CTk):
     # Handles the left switch event 
     def leftSwitchToggle(self,event):
         # tie this to the state machine
-        print("left switch")
+        print("left switch toggled")
         self.user_state.leftSwitchToggle()
+
 
     
     # Handles the right switch event
@@ -47,9 +48,10 @@ class App(customtkinter.CTk):
     # Handles updating event
     def updateGUIHandler(self,event):
         print("update occured")
-        stage: str = self.user_state.getStage()
+        stage = self.user_state.processValue()
+
         if(stage != self.current_state):
-            self.tabview.set(stage)
+            self.tabview.set(self.user_state.getStage())
             self.updateUserText()
             print(stage)
             self.current_state = stage
@@ -60,9 +62,8 @@ class App(customtkinter.CTk):
         super().__init__()
 
         #Launch Drum controllers
-        self.Drum = LaunchDrum()
         self.user_state = Launcher
-        self.current_state = Launcher.getStage()
+        self.current_state = Launcher.processValue()
         self.pinout = pinout
         #self.switch = switch
 
@@ -191,7 +192,6 @@ class App(customtkinter.CTk):
 
     # Update launch drums on screen  
     def updateLaunchDrumInformation(self):
-        print(self.user_state.leftDrumText())
         self.Left_Rocket_textbox.delete("0.0","end")
         self.Right_Rocket_textbox.delete("0.0","end")
         ltext = self.user_state.leftDrumText()
