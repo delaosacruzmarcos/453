@@ -55,31 +55,31 @@ class Serial_Coms():
         self.create_frame_to_pi()
         self._pins = Pinout()
                 # The actual pinout is defined in pinout.py
-        frame_message_send = self._pins.getGPIOPINS("frame_message_send")
-        frame_message_recieved = self._pins.getGPIOPINS("frame_message_recieved")
-        controller_message_send = self._pins.getGPIOPINS("controller_message_send")
-        controller_message_recieved = self._pins.getGPIOPINS("controller_message_recieved")
+        self._frame_message_send = self._pins.getGPIOPINS("frame_message_send")
+        self._frame_message_recieved = self._pins.getGPIOPINS("frame_message_recieved")
+        self._controller_message_send = self._pins.getGPIOPINS("controller_message_send")
+        self._controller_message_recieved = self._pins.getGPIOPINS("controller_message_recieved")
 
         # We will always be using the BCM mode
         GPIO.setmode(GPIO.BOARD)
 
-        print (controller_message_recieved)
+        print (self._controller_message_recieved)
         # Setting them up to recieve input
-        GPIO.setup(frame_message_recieved, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-        GPIO.setup(controller_message_recieved, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+        GPIO.setup(self._frame_message_recieved, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+        GPIO.setup(self._controller_message_recieved, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
         
         # Setting them up to produce output
-        GPIO.setup(controller_message_send, GPIO.OUT)
-        GPIO.setup(frame_message_send, GPIO.OUT)
+        GPIO.setup(self._controller_message_send, GPIO.OUT)
+        GPIO.setup(self._frame_message_send, GPIO.OUT)
 
         # Removing previously used call backs
-        GPIO.remove_event_detect(controller_message_recieved)
-        GPIO.remove_event_detect(frame_message_recieved)
+        GPIO.remove_event_detect(self._controller_message_recieved)
+        GPIO.remove_event_detect(self._frame_message_recieved)
 
         # adding the call backs
-        GPIO.add_event_detect(controller_message_recieved, GPIO.RISING, 
+        GPIO.add_event_detect(self._controller_message_recieved, GPIO.RISING, 
                               callback=lambda x: self.keystroke_callback("controller_message_recieved"))
-        GPIO.add_event_detect(frame_message_recieved, GPIO.RISING, 
+        GPIO.add_event_detect(self._frame_message_recieved, GPIO.RISING, 
                               callback=lambda x: self.keystroke_callback("frame_message_recieved"))
         self.serial_begin()
 
@@ -95,6 +95,12 @@ class Serial_Coms():
             list = self._pins.getGPIOKeys().get('<<controller-message-recieved>>')
             press(list[1])
             return
+        elif(key == 'pressurization_button_pressed'):
+            list = self._pins.getGPIOKeys().get('<<frame-message-recieved>>')
+            press(list[1])
+            return  
+        return
+
 
 
     # Uploads the .ino files, runs on start up
@@ -185,13 +191,24 @@ class Serial_Coms():
                 self._controller_to_pi_message["Joysticks"]["left"]["y"] = data["Joysticks"]["left"]["y"]
                 self._controller_to_pi_message["Joysticks"]["right"]["x"] = data["Joysticks"]["right"]["x"]
                 self._controller_to_pi_message["Joysticks"]["right"]["x"] = data["Joysticks"]["right"]["x"]
-                self._controller_to_pi_message["Switches"]["leftOn"] = data["Switches"]["leftOn"]
-                self._controller_to_pi_message["Switches"]["rightOn"] = data["Switches"]["rightOn"]
-                self._controller_to_pi_message["Button"]["Pressed"] = data["Button"]["Pressed"]
+
+                if self._controller_to_pi_message["Switches"]["leftOn"] != data["Switches"]["leftOn"]:
+                    self.keystroke_callback('left-switch')
+                    self._controller_to_pi_message["Switches"]["leftOn"] = data["Switches"]["leftOn"]
+                
+                if self._controller_to_pi_message["Switches"]["rightOn"] != data["Switches"]["rightOn"]:
+                    self.keystroke_callback('right-switch')
+                    self._controller_to_pi_message["Switches"]["rightOn"] = data["Switches"]["rightOn"]
+
+                if self._controller_to_pi_message["Button"]["Pressed"] != data["Button"]["Pressed"]:
+                    self.keystroke_callback('pressurization_button_pressed')
+                    self._controller_to_pi_message["Button"]["Pressed"] = data["Button"]["Pressed"]
+                
                 print(self._controller_to_pi_message)
                 return
             except Exception as err:
                 print(err, line)
+
 
     # Called in response to the fram interrupt to parse the frame json message
     def readFrame(self) -> None:
@@ -222,19 +239,6 @@ class Serial_Coms():
         self._pi_to_frame_message
         self._pi_to_controller_message
 
-
-        frameSer  = serial.Serial(self._arduinoInfo["Frame"]["port"], baudrate= 9600, 
-        timeout=2.5, 
-        parity=serial.PARITY_NONE, 
-        bytesize=serial.EIGHTBITS, 
-        stopbits=serial.STOPBITS_ONE
-        )
-        controllerSer  = serial.Serial(self._arduinoInfo["Controller"]["port"], baudrate= 9600, 
-        timeout=2.5, 
-        parity=serial.PARITY_NONE, 
-        bytesize=serial.EIGHTBITS, 
-        stopbits=serial.STOPBITS_ONE
-        )
         frameData = self._pi_to_frame_message
         controllerData = self._pi_to_controller_message
         frameData = json.dumps(frameData)
@@ -257,7 +261,20 @@ class Serial_Coms():
             self._uno.flush()
         else:
             print("Something up, uno serial port is not open'")
-        return
+
+        if self._mega.isOpen():
+            self._mega.write(frameData.encode('ascii'))
+            self._mega.flush()
+        else:
+            print("Something up, mega serial port is not open'")
+        
+        # Generate I/O interrupt for arduinos
+        GPIO.output(self._frame_message_send, True)
+        GPIO.output(self._controller_message_send, True)
+        time.delay(1)
+        GPIO.output(self._frame_message_send, False)
+        GPIO.output(self._controller_message_send, False)
+
 
 
     # Handles updating the command dict with given information
@@ -285,6 +302,19 @@ class Serial_Coms():
         self.write()
         return
     
+    #---Verification---#
+    #Called during pressurization to check that frame recieved and updated appropriately
+    def compare_frame_commanded_to_frame_response(self)->bool:
+        recieved = self._frame_to_pi_message
+        sent = self._pi_to_frame_message
+        for key in sent.keys:
+            sentValue = sent[key]
+            recievedValue = recieved[key]
+            if sentValue != recievedValue:
+                return False
+        return True
+
+
 
 def begin():
     controlFile = open("/JSON/arduino-control.json", 'r')
