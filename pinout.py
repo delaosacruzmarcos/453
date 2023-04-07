@@ -13,7 +13,8 @@ class Pinout():
             '<<left-switch>>': ['<l>',"l"], #triggered by GPIO interrupt to update state
             '<<right-switch>>': ['<r>',"r"],#triggered by GPIO interrupt to update state
             '<<frame-message-recieved>>': ['<f>',"f"], #triggered by the frame sending a message
-            '<<controller-message-recieved>>': ['<c>',"c"] #triggered by a message from the controller
+            '<<controller-message-recieved>>': ['<c>',"c"], #triggered by a message from the controller
+            '<<pressurize-button-pressed>>': ['<p>', "p"] #pressurization button pressed
         }
 
         #Pins of the raspberry pi

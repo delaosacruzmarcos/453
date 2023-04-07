@@ -28,17 +28,17 @@ It uses two way serial communication. Sending positional data to the Pi and reci
 #define ACTUATOR_PRECISION 1
 
 // pneumatics - not wired officially yet
-#define SOLENOID_A 12
-#define SOLENOID_B 13
-#define SOLENOID_C 14
-#define AIR_COMPRESSOR 15
-#define RIGHT_LATCH 16
-#define LEFT_LATCH 17 
+#define SOLENOID_A 11
+#define SOLENOID_B 10
+#define SOLENOID_C 9
+#define AIR_COMPRESSOR 8
+#define RIGHT_LATCH 7
+#define LEFT_LATCH 6 
 #define PRESSURE_SENSOR A6
 
 // Serial communication
-#define SEND_DATA_WARNING 33      // set to high (temporarily) to cause incoming data interrupt on the Pi
-#define RECIEVE_DATA_WARNING 34   // High when the pi is sending data to us (never used)
+#define SEND_DATA_WARNING 13      // set to high (temporarily) to cause incoming data interrupt on the Pi
+#define RECIEVE_DATA_WARNING 12   // High when the pi is sending data to us (never used)
 
 //---------------Declarations-----------//
 void setUpGPIO();
@@ -127,9 +127,9 @@ StaticJsonDocument<192> doc;
   Serial.write('\n');
 
   // Lets the Pi know wesent a message (Pi interrupts triggered)
-  pinMode(SEND_DATA_WARNING, HIGH);
+  digitalWrite(SEND_DATA_WARNING, HIGH);
   delay(100);
-  pinMode(SEND_DATA_WARNING, LOW);
+  digitalWrite(SEND_DATA_WARNING, LOW);
   return;
 }
 
@@ -184,6 +184,29 @@ void setUpPneumatics(){
   return;
 }
 
+void flashLEDsForTesting(){
+  for (int i = 0; i < 3; i++){
+  digitalWrite(SOLENOID_A,true);
+  digitalWrite(SOLENOID_B,true);
+  digitalWrite(SOLENOID_C,true);
+  digitalWrite(RIGHT_LATCH,true);
+  digitalWrite(LEFT_LATCH,true);
+  digitalWrite(AIR_COMPRESSOR,true);
+  digitalWrite(SEND_DATA_WARNING, true);
+  digitalWrite(RECIEVE_DATA_WARNING, true);
+  delay(1000);
+  digitalWrite(SOLENOID_A,false);
+  digitalWrite(SOLENOID_B,false);
+  digitalWrite(SOLENOID_C,false);
+  digitalWrite(RIGHT_LATCH,false);
+  digitalWrite(LEFT_LATCH,false);
+  digitalWrite(AIR_COMPRESSOR,false);
+  digitalWrite(SEND_DATA_WARNING, false);
+  digitalWrite(RECIEVE_DATA_WARNING, false);
+  delay(1000);
+  }
+}
+
 // Update the pneumatics state to reflect the pInfo structure, 
 void updatePneumatics(){
   digitalWrite(SOLENOID_A,pInfo.A);
@@ -192,6 +215,7 @@ void updatePneumatics(){
   digitalWrite(RIGHT_LATCH,pInfo.rightLatch);
   digitalWrite(LEFT_LATCH,pInfo.leftLatch);
   digitalWrite(AIR_COMPRESSOR,pInfo.Compressor);
+  delay(100);
   return;
 }
 
@@ -245,7 +269,8 @@ void setup() {
   pinMode(ACTUATOR_1_EXTEND_PIN, OUTPUT);
   pinMode(ACTUATOR_1_RETRACT_PIN, OUTPUT);
   serialSetUp();
-  SetUPpneumatics();
+  setUpPneumatics();
+  flashLEDsForTesting();
 }
 
 void loop() {
@@ -255,4 +280,5 @@ void loop() {
   readHardware();
   sendResponse();
   actuators();
+  delay(1000);
 }

@@ -92,7 +92,7 @@ class LaunchDrum():
             self.pneumaticsStatesetUp(True,True,True,not right,not left,False)
         if(self._pressurization_stage == 2): #turn on the air compressor
             self.pneumaticsStatesetUp(True,True,True,not right,not left,True)
-        if(self._pressurization_stage == 2): #Close corresponding solenoids to trap air
+        if(self._pressurization_stage == 3): #Close corresponding solenoids to trap air
             self.pneumaticsStatesetUp(True,True,True,right,left,True)
         
         

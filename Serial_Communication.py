@@ -26,12 +26,12 @@ class Serial_Coms():
     _arduinoInfo: dict = {
         "Frame": {
             "board": "mega2560",
-            "port": "/dev/ttyACM0",
+            "port": "/dev/ttyACM1",
             "path": "/home/pi/Desktop/453/arduino/InFrame/InFrame.ino"
         },
         "Controller":{
             "board": "Arduino Uno",
-            "port": "/dev/ttyACM1",
+            "port": "/dev/ttyACM0",
             "path": "/home/pi/Desktop/453/arduino/InController/InController.ino"
         }
     }
@@ -208,7 +208,7 @@ class Serial_Coms():
                     self._controller_to_pi_message["Button"]["Pressed"] = data["Button"]["Pressed"]
                     self.keystroke_callback('pressurization_button_pressed')
                 
-                print("from read Controller: \n",self._controller_to_pi_message)
+                #print("from read Controller: \n",self._controller_to_pi_message)
                 return
             except Exception as err:
                 print(err, line)
@@ -228,7 +228,7 @@ class Serial_Coms():
                 self._frame_to_pi_message["Solenoids"]["OpenB"] = data["Solenoids"]["OpenB"]
                 self._frame_to_pi_message["Solenoids"]["OpenC"] = data["Solenoids"]["OpenC"] 
                 self._frame_to_pi_message["Compressor"]["turnOn"] = data["Compressor"]["turnOn"]
-                print(self._controller_to_pi_message)
+                #print(self._controller_to_pi_message)
                 return
             except Exception as err:
                 print(err, line)
@@ -247,6 +247,7 @@ class Serial_Coms():
         frameData = json.dumps(frameData)
         controllerData = json.dumps(controllerData)
 
+        #UNCOMMENT for serial data updates
         print("This is the json sending to the frame\n", frameData)
         print("This is the json sending to the controller\n", controllerData)
 
@@ -274,7 +275,7 @@ class Serial_Coms():
         # Generate I/O interrupt for arduinos
         GPIO.output(self._frame_message_send, True)
         GPIO.output(self._controller_message_send, True)
-        time.delay(1)
+        time.sleep(1)
         GPIO.output(self._frame_message_send, False)
         GPIO.output(self._controller_message_send, False)
 

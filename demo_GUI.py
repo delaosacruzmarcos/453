@@ -26,6 +26,13 @@ customtkinter.set_default_color_theme("blue")  # Themes: "blue" (standard), "gre
 
 
 class App(customtkinter.CTk):
+        #----------Event handling testing---------#
+    def pressurizeTesting(self, event):
+        print("\npressurization button pressed in this stage: ",self.user_state.getStage())
+        self.user_state.pressurizeButton()
+        return
+
+
         #----------Event handling---------#
     def testEvent(self,event):
         print('hello world')
@@ -188,6 +195,11 @@ class App(customtkinter.CTk):
 
         self.event_add("<<frame_message_recieved>>", '<f>')
         self.bind('<<frame_message_recieved>>', self.updateGUIHandler)
+
+        self.event_add("<<pressurize-button-pressed>>", '<p>')
+        self.bind('<<pressurize-button-pressed>>', self.pressurizeTesting)
+
+                
 
 
     # Update launch drums on screen  
