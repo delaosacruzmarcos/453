@@ -13,6 +13,7 @@ It uses two way serial communication. Sending positional data to the Pi and reci
 #include <stdbool.h>
 #include <Arduino.h>
 #include <ArduinoJson.h>
+#include <StreamUtils.h>
 
 //---------------PIN-I/O-----------//
 #define ACTUATOR_1_POS_PIN A13
@@ -39,7 +40,7 @@ It uses two way serial communication. Sending positional data to the Pi and reci
 // Serial communication
 #define SEND_DATA_WARNING 13      // set to high (temporarily) to cause incoming data interrupt on the Pi
 #define RECIEVE_DATA_WARNING 12   // High when the pi is sending data to us (never used)
-
+#define READ_SERIAL 5
 //---------------Declarations-----------//
 void setUpGPIO();
 void updateGPIO();
@@ -134,29 +135,55 @@ StaticJsonDocument<192> doc;
 }
 
 void readSerial() {
-  StaticJsonDocument<192> doc;
-  if(Serial.available()) {
-    String received = Serial.readStringUntil(0);
-    DeserializationError error = deserializeJson(doc, received);
-    
-    if(!error) {
-      // Need to rework the actuator stuff
-      actuator_1_desired_pos = doc["Actuators"]["left"]["move_to"];
-      actuator_2_desired_pos = doc["Actuators"]["right"]["move_to"];
 
-      // pInfo update
-      pInfo.A = doc["Solenoids"]['OpenA'];
-      pInfo.B = doc["Solenoids"]['OpenB'];
-      pInfo.C = doc["Solenoids"]['OpenC'];
-      pInfo.Compressor = doc["Compressor"]["turnOn"];
-      pInfo.leftLatch = doc["Latches"]["OpenLeft"];
-      pInfo.rightLatch = doc["Latches"]["OpenRight"];
+  StaticJsonDocument<384> doc;
+  ReadBufferingStream bufferedStream(Serial, 384);
+  DeserializationError error = deserializeJson(doc, bufferedStream);
 
-    } else {
-      Serial.println(error.f_str());
-    }
+  if (error) {
+    Serial.print(F("deserializeJson() failed: "));
+    Serial.println(error.f_str());
+    Serial.print(Serial.readString());
+    return;
   }
-}
+      // Need to rework the actuator stuff
+      digitalWrite(READ_SERIAL, true);
+      delay(100);
+      digitalWrite(READ_SERIAL, false);
+    const char* COMMENT = doc["_COMMENT"]; // "json format is sent from the Pi to the arduino in the frame"
+    
+    for (JsonPair Actuator : doc["Actuators"].as<JsonObject>()) {
+      const char* Actuator_key = Actuator.key().c_str(); // "left", "right"
+    
+      int Actuator_value_move_to = Actuator.value()["move_to"]; // 1024, 0
+    
+    }
+  
+    for (JsonPair Motor : doc["Motors"].as<JsonObject>()) {
+      const char* Motor_key = Motor.key().c_str(); // "left", "right"
+    
+      int Motor_value_move_to = Motor.value()["move_to"]; // 1024, 0
+    
+    }
+  
+    JsonObject Solenoids = doc["Solenoids"];
+    pInfo.A = Solenoids["OpenA"]; // true
+    pInfo.B = Solenoids["OpenB"]; // true
+    pInfo.C = Solenoids["OpenC"]; // true
+    
+    pInfo.rightLatch = doc["Latches"]["OpenRight"]; // true
+    pInfo.leftLatch = doc["Latches"]["OpenLeft"]; // true
+    
+    pInfo.Compressor = doc["Compressor"]["turnOn"]; // true
+    Serial.print("Valve A: ");
+    Serial.println(pInfo.A);
+    Serial.print("Valve B: ");
+    Serial.println(pInfo.B);
+    Serial.print("Valve C: ");
+    Serial.println(pInfo.C);
+
+    Serial.flush();
+  }
 
 // not sure what this is supposed to do
 void readHardware() {
@@ -181,6 +208,7 @@ void setUpPneumatics(){
   pinMode(RIGHT_LATCH, OUTPUT);
   pinMode(LEFT_LATCH, OUTPUT);  
   pinMode(AIR_COMPRESSOR, OUTPUT);
+  pinMode(READ_SERIAL, OUTPUT);
   return;
 }
 
@@ -194,6 +222,7 @@ void flashLEDsForTesting(){
   digitalWrite(AIR_COMPRESSOR,true);
   digitalWrite(SEND_DATA_WARNING, true);
   digitalWrite(RECIEVE_DATA_WARNING, true);
+  digitalWrite(READ_SERIAL, true);
   delay(1000);
   digitalWrite(SOLENOID_A,false);
   digitalWrite(SOLENOID_B,false);
@@ -203,6 +232,7 @@ void flashLEDsForTesting(){
   digitalWrite(AIR_COMPRESSOR,false);
   digitalWrite(SEND_DATA_WARNING, false);
   digitalWrite(RECIEVE_DATA_WARNING, false);
+  digitalWrite(READ_SERIAL, false);
   delay(1000);
   }
 }
@@ -274,11 +304,10 @@ void setup() {
 }
 
 void loop() {
-  if (messageRecieved()){
-    readSerial();    
-  }
+  readSerial();
   readHardware();
+  updatePneumatics();
   sendResponse();
   actuators();
-  delay(1000);
+  delay(100);
 }
