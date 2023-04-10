@@ -104,28 +104,33 @@ bool messageRecieved(){
 
 // Will requier changing when we connect the motors
 void sendResponse() {
-StaticJsonDocument<192> doc;
 
-  doc["_COMMENT"] = "json format sent from the arduino in the frame to the Pi";
-
+  Serial.flush();
+  StaticJsonDocument<256> doc;
+  
+  doc["_COMMENT"] = "json format is sent from the Pi to the arduino in the frame";
+  
   JsonObject Actuators = doc.createNestedObject("Actuators");
-
-  JsonObject Actuators_1 = Actuators.createNestedObject("1");
-  Actuators_1["pos"] = 1024;
-
-  JsonObject Actuators_1_current_alarm = Actuators_1.createNestedObject("current_alarm");
-  Actuators_1_current_alarm["left"] = 1024;
-  Actuators_1_current_alarm["right"] = 1024;
-
-  JsonObject Actuators_2 = Actuators.createNestedObject("2");
-  Actuators_2["pos"] = 1024;
-
-  JsonObject Actuators_2_current_alarm = Actuators_2.createNestedObject("current_alarm");
-  Actuators_2_current_alarm["left"] = 1024;
-  Actuators_2_current_alarm["right"] = 1024;
-
-  size_t bytesWritten = serializeJson(doc, Serial);
+  Actuators["left"]["move_to"] = 1024;
+  Actuators["right"]["move_to"] = 0;
+  
+  JsonObject Motors = doc.createNestedObject("Motors");
+  Motors["left"]["move_to"] = 1024;
+  Motors["right"]["move_to"] = 0;
+  
+  JsonObject Solenoids = doc.createNestedObject("Solenoids");
+  Solenoids["OpenA"] = true;
+  Solenoids["OpenB"] = true;
+  Solenoids["OpenC"] = true;
+  
+  JsonObject Latches = doc.createNestedObject("Latches");
+  Latches["OpenRight"] = true;
+  Latches["OpenLeft"] = true;
+  doc["Compressor"]["turnOn"] = true;
+  
+  serializeJson(doc, Serial);
   Serial.write('\n');
+  
 
   // Lets the Pi know wesent a message (Pi interrupts triggered)
   digitalWrite(SEND_DATA_WARNING, HIGH);
@@ -137,13 +142,21 @@ StaticJsonDocument<192> doc;
 void readSerial() {
 
   StaticJsonDocument<384> doc;
+
+  while (isspace(Serial.peek())){
+    Serial.read();
+  }
   ReadBufferingStream bufferedStream(Serial, 384);
   DeserializationError error = deserializeJson(doc, bufferedStream);
 
   if (error) {
     Serial.print(F("deserializeJson() failed: "));
     Serial.println(error.f_str());
-    Serial.print(Serial.readString());
+    //Serial.println("New text!");
+    //Serial.println(bufferedStream.read());
+    while (Serial.available() > 0){
+        Serial1.read();
+    }
     return;
   }
       // Need to rework the actuator stuff
@@ -220,7 +233,6 @@ void flashLEDsForTesting(){
   digitalWrite(RIGHT_LATCH,true);
   digitalWrite(LEFT_LATCH,true);
   digitalWrite(AIR_COMPRESSOR,true);
-  digitalWrite(SEND_DATA_WARNING, true);
   digitalWrite(RECIEVE_DATA_WARNING, true);
   digitalWrite(READ_SERIAL, true);
   delay(1000);
@@ -230,7 +242,6 @@ void flashLEDsForTesting(){
   digitalWrite(RIGHT_LATCH,false);
   digitalWrite(LEFT_LATCH,false);
   digitalWrite(AIR_COMPRESSOR,false);
-  digitalWrite(SEND_DATA_WARNING, false);
   digitalWrite(RECIEVE_DATA_WARNING, false);
   digitalWrite(READ_SERIAL, false);
   delay(1000);
