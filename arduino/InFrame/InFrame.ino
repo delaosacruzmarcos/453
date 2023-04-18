@@ -36,6 +36,13 @@ It uses two way serial communication. Sending positional data to the Pi and reci
 #define LEFT_LATCH 17 
 #define PRESSURE_SENSOR A6
 
+// pressurization signals (digtial)
+#define STAGE_1 22
+#define STAGE_2 24
+#define STAGE_3 26 
+#define STAGE_4 28
+#define STAGE_5 30
+
 // Serial communication
 #define SEND_DATA_WARNING 33      // set to high (temporarily) to cause incoming data interrupt on the Pi
 #define RECIEVE_DATA_WARNING 34   // High when the pi is sending data to us (never used)
@@ -44,6 +51,7 @@ It uses two way serial communication. Sending positional data to the Pi and reci
 void setUpGPIO();
 void updateGPIO();
 void sendResponse();
+void pressurize(int waitTime, int presTime, int pres); // When true that side will be pressurized
 
 //---------------Globals&Structs-----------//
 typedef struct pneumaticsInfo{
@@ -54,6 +62,11 @@ typedef struct pneumaticsInfo{
   bool rightLatch;
   bool leftLatch;
 };
+
+typedef struct activeInfo{
+  bool left;
+  bool right;
+}
 
 typedef struct actuator{
   int actuator_pos = -1;
@@ -66,6 +79,7 @@ typedef struct Motor {
 };
 
 pneumaticsInfo pInfo; // tracks solenoid air compressor, and latch positions
+activeInfo active;    // holds the activity state sent from the pi
 actuator rightAct;    // tracks right actuator movement data
 actuator leftAct;     // tracks left actuator movement data
 
@@ -240,6 +254,113 @@ void actuators() {
     analogWrite(ACTUATOR_1_RETRACT_PIN, 0);
   }
 }
+//---------------PRESSURIZATION-----------//
+ /******************************************\
+ Pressurization command stages
+
+ 1.) Close the latches to prevent rockets from escaping during pressurization
+
+ 2.) Close the opposite valves of the rockets that are being fired, to prevent 
+ air flowing through the valves that don't contain rockets
+
+ 3.) Turn on the air compressor for designated amo;unt of time to allow system
+ to pressurize the rockets. In the case the system doesn't pressurize in this amount
+ of time a safety shut off will occur
+
+ 4.) Turn off the air compressor and measure the system pressure for a set interval
+ This checks for leaks in the rocket design, and prevents faulty pressurized launches
+
+ \******************************************/
+#define WAITTIME 5000 // ms before stage 3 time out
+#define PRESREAD 100  // ms between pressure sensor reads
+#define PRESTIME 2000 // ms before stage 4 pass
+#define PRESSURE 60   // psi to pressurize & hold
+#define H_VALUE  12   // hysterisa of accepted similarity
+
+// Creates ban of accepted values
+bool hysterisa(int desired, int actual){
+ return (actual + H_VALUE < desired || actual - H_VALUE > desired) ? true : false
+}
+
+// Handles error in pressurization sequence - doesn't do much now lol
+void perror(int stage_number){
+  switch (stage_number){
+    case (1):
+      break;
+    case (2):
+      break;
+    case (3):
+      break;
+    case (4):
+      break;
+    case (5):
+      break;
+    default:
+      break;
+  }
+  return;
+}
+
+void pressurize(int waitTime, int presTime, int pres){
+
+  // Stage 1 - closing latches and emergency release
+  digitalWrite(SOLENOID_A, false);
+  digitalWrite(LEFT_LATCH, true);
+  digitalWrite(RIGHT_LATCH, true);
+  digitalWrite(STAGE_1, true);
+  delay(100);
+
+  // Stage 2 - closing appropriate valves
+  if (active.left){
+    digitalWrite(SOLENOID_B, true);
+  }
+  if (active.right){
+    digitalWrite(SOLENOID_C, true);
+  }
+  digitalWrite(STAGE_2, true); 
+  delay(100);
+
+  // Stage 3 - turning on air compressor & continuously reading pressure 
+  int timeElapsed = 0;
+  int curpres = readPressureSensor();
+  while (WAITTIME - timeElapsed > 0){
+    if (timeElapsed % PRESREAD == 0){
+      curpres = readPressureSensor();
+      if (curpres > PRESSURE){
+        break;
+      }
+    }
+    delay(1);
+    timeElapsed++;
+  }
+  if (timeElapsed > WAITTIME){ //took too long to pressurize
+    perror(STAGE3);
+  }
+  digitalWrite(STAGE_3, true);
+  delay(100;)
+
+  // Stage 4 - Turn off air compressor & hold desired pressure for set time interval
+  digitalWrite(AIR_COMPRESSOR, false);
+  timeElapsed = 0;
+  while (PRESTIME - timeElapsed > 0){
+    if (timeElapsed % PRESREAD == 0){
+      curpres = readPressureSensor();
+      if (!hysterisa(PRESSURE, curpres)){
+        break;
+      }
+    }
+    delay(1);
+    timeElapsed++;
+  }
+  if (timeElapsed < PRESTIME){ //took too long to pressurize
+    perror(STAGE4);
+  }
+
+  // Stage 5 - Lock air into rocket drums, and depressurize for back flow
+
+  return;
+}
+
 
 void setup() {
   pinMode(ACTUATOR_1_EXTEND_PIN, OUTPUT);
